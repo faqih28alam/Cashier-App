@@ -20,6 +20,11 @@ def _get_or_create(db: Session) -> Setting:
     return setting
 
 
+@router.get("/public", response_model=SettingOut)
+def get_setting_public(db: Annotated[Session, Depends(get_db)]):
+    return _get_or_create(db)
+
+
 @router.get("/", response_model=SettingOut)
 def get_setting(db: Annotated[Session, Depends(get_db)], _: Annotated[User, Depends(get_current_user)]):
     return _get_or_create(db)

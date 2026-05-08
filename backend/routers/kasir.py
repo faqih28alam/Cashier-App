@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from dependencies import get_db, get_current_user
@@ -46,4 +46,7 @@ def get_transaksi(
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[User, Depends(get_current_user)],
 ):
-    return db.get(Transaksi, id)
+    trx = db.get(Transaksi, id)
+    if not trx:
+        raise HTTPException(status_code=404, detail="Transaksi tidak ditemukan")
+    return trx

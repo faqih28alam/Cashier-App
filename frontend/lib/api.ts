@@ -28,14 +28,14 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  if (res.status === 401) {
-    clearAuth();
-    window.location.href = "/login";
-    throw new Error("Unauthorized");
-  }
-
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
+    // Only treat 401 as "session expired" when we actually had a token.
+    // Without a token it's a failed login — let the caller handle it.
+    if (res.status === 401 && token) {
+      clearAuth();
+      window.location.href = "/login";
+    }
     throw new Error(err.detail ?? "Request failed");
   }
 

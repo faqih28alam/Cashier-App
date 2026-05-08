@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -19,9 +20,18 @@ def _generate_no(db: Session) -> str:
 
 
 def create(db: Session, payload: TransaksiCreate, user_id: int) -> Transaksi:
+    if not payload.detail:
+        raise HTTPException(status_code=400, detail="Transaksi harus memiliki minimal satu item")
+
     total = sum(
         (item.qty * item.harga) - item.diskon for item in payload.detail
     )
+    if payload.bayar < total:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Uang bayar kurang dari total ({int(total):,})",
+        )
+
     kembalian = payload.bayar - total
 
     trx = Transaksi(

@@ -62,7 +62,9 @@ export default function KasirPage() {
   const [setting, setSetting] = useState<StoreSetting>({ nama_toko: "Kasir App", alamat: "", telepon: "", receipt_footer: "Terima Kasih!" });
 
   useEffect(() => {
-    api.get<StoreSetting>("/setting/").then(setSetting).catch(() => {});
+    api.get<StoreSetting>("/setting/").then(setSetting).catch(() => {
+      toast("Gagal memuat pengaturan toko", "error");
+    });
   }, []);
 
   const total = items.reduce((s, i) => s + i.total, 0);

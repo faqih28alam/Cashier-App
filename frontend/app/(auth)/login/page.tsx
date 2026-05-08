@@ -1,14 +1,24 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { saveAuth, AuthUser } from "@/lib/auth";
 import { toast } from "@/components/shared/Toast";
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
 export default function LoginPage() {
   const router = useRouter();
   const [form, setForm] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [namaToko, setNamaToko] = useState("Kasir App");
+
+  useEffect(() => {
+    fetch(`${BASE_URL}/setting/public`)
+      .then((r) => r.json())
+      .then((d) => { if (d.nama_toko) setNamaToko(d.nama_toko); })
+      .catch(() => {});
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -26,9 +36,22 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-1">Kasir App</h1>
-        <p className="text-sm text-gray-500 mb-6">Masuk untuk melanjutkan</p>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8">
+        {/* Logo */}
+        <div className="flex justify-center mb-5">
+          <div className="bg-gray-900 rounded-2xl w-16 h-16 flex items-center justify-center">
+            <svg viewBox="0 0 24 24" fill="none" className="w-9 h-9 text-white" stroke="currentColor" strokeWidth={1.5}>
+              <rect x="2" y="3" width="20" height="14" rx="2" strokeLinejoin="round" />
+              <path d="M8 21h8M12 17v4" strokeLinecap="round" />
+              <path d="M6 8h.01M6 11h.01M9 8h6M9 11h6" strokeLinecap="round" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Store name */}
+        <h1 className="text-xl font-bold text-gray-800 text-center">{namaToko}</h1>
+        <p className="text-sm text-gray-400 text-center mb-6">Masuk untuk melanjutkan</p>
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
@@ -38,7 +61,7 @@ export default function LoginPage() {
               required
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
-              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
             />
           </div>
           <div>
@@ -48,13 +71,13 @@ export default function LoginPage() {
               required
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="bg-gray-900 hover:bg-gray-700 text-white py-2 rounded font-medium text-sm disabled:opacity-50"
+            className="bg-gray-900 hover:bg-gray-700 text-white py-2 rounded-lg font-medium text-sm disabled:opacity-50 mt-1"
           >
             {loading ? "Masuk..." : "MASUK"}
           </button>
