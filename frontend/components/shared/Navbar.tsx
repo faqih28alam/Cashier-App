@@ -11,6 +11,7 @@ const NAV = [
   { href: "/laporan",  label: "LAPORAN",  roles: ["admin", "owner"] },
   { href: "/master",   label: "MASTER",   roles: ["admin", "owner"] },
   { href: "/setting",  label: "SETTING",  roles: ["admin", "owner"] },
+  { href: "/panduan",  label: "PANDUAN",  roles: ["kasir", "admin", "owner"] },
 ];
 
 export function Navbar() {

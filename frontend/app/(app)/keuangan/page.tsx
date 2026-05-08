@@ -43,8 +43,11 @@ export default function KeuanganPage() {
 
   return (
     <div className="p-5 space-y-4">
+      <div>
+        <h1 className="text-lg font-bold text-gray-800">Keuangan</h1>
+        <p className="text-xs text-gray-500 mt-0.5 mb-3">Buku kas toko — tercatat otomatis dari penjualan dan pembelian. Tambah entri manual untuk biaya operasional.</p>
+      </div>
       <div className="flex items-center gap-3 flex-wrap">
-        <h1 className="text-lg font-bold text-gray-800 mr-2">Keuangan</h1>
         <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="border rounded px-2 py-1 text-sm" />
         <span className="text-gray-400">s/d</span>
         <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="border rounded px-2 py-1 text-sm" />

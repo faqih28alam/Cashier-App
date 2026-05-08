@@ -49,8 +49,11 @@ export default function PurchasPage() {
 
   return (
     <div className="p-5 space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-gray-800">Pembelian</h1>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-gray-800">Pembelian</h1>
+          <p className="text-xs text-gray-500 mt-0.5">Catat pembelian barang dari supplier. Konfirmasi untuk memperbarui stok gudang.</p>
+        </div>
         <button onClick={() => setShowModal(true)} className="flex items-center gap-1 bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-sm">
           <Plus size={14} /> Buat Pembelian
         </button>

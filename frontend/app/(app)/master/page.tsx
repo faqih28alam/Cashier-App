@@ -85,8 +85,11 @@ export default function MasterPage() {
 
   return (
     <div className="p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-lg font-bold text-gray-800">Master Barang</h1>
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h1 className="text-lg font-bold text-gray-800">Master Barang</h1>
+          <p className="text-xs text-gray-500 mt-0.5">Kelola data produk: barcode, harga jual bertingkat (grosir), HPP, dan stok minimum.</p>
+        </div>
         <button onClick={openCreate} className="flex items-center gap-1 bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-sm">
           <Plus size={14} /> Tambah
         </button>

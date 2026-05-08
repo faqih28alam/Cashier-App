@@ -36,8 +36,11 @@ export default function LaporanPage() {
 
   return (
     <div className="p-5 space-y-5">
+      <div>
+        <h1 className="text-lg font-bold text-gray-800">Laporan Penjualan</h1>
+        <p className="text-xs text-gray-500 mt-0.5 mb-3">Ringkasan pendapatan harian dan 10 produk terlaris dalam rentang tanggal yang dipilih.</p>
+      </div>
       <div className="flex items-center gap-3 flex-wrap">
-        <h1 className="text-lg font-bold text-gray-800 mr-2">Laporan Penjualan</h1>
         <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="border rounded px-2 py-1 text-sm" />
         <span className="text-gray-400">s/d</span>
         <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="border rounded px-2 py-1 text-sm" />

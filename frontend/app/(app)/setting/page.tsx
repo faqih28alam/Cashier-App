@@ -39,7 +39,8 @@ export default function SettingPage() {
 
   return (
     <div className="p-5 max-w-lg">
-      <h1 className="text-lg font-bold text-gray-800 mb-5">Setting</h1>
+      <h1 className="text-lg font-bold text-gray-800">Setting</h1>
+      <p className="text-xs text-gray-500 mt-0.5 mb-5">Konfigurasi nama toko, koneksi printer termal, dan tampilan struk pelanggan.</p>
       <div className="bg-white rounded-lg border p-5 flex flex-col gap-4">
         {fields.map(([key, label, type]) => (
           <div key={key}>

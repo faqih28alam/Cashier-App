@@ -1,9 +1,10 @@
 from datetime import date
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 
 from models.transaksi import Transaksi, TransaksiDetail
 from models.barang import Barang
+from models.user import User
 
 
 def penjualan_harian(db: Session, tgl_mulai: date, tgl_selesai: date) -> list[dict]:
@@ -49,3 +50,40 @@ def produk_terlaris(db: Session, tgl_mulai: date, tgl_selesai: date, limit: int 
 
 def stok_list(db: Session) -> list[Barang]:
     return db.query(Barang).order_by(Barang.nama_barang).all()
+
+
+def transaksi_list(db: Session, tgl_mulai: date, tgl_selesai: date) -> list[dict]:
+    rows = (
+        db.query(Transaksi)
+        .options(joinedload(Transaksi.detail), joinedload(Transaksi.user))
+        .filter(
+            Transaksi.status == "paid",
+            func.date(Transaksi.tanggal) >= tgl_mulai,
+            func.date(Transaksi.tanggal) <= tgl_selesai,
+        )
+        .order_by(Transaksi.tanggal.desc())
+        .all()
+    )
+    result = []
+    for t in rows:
+        result.append({
+            "id": t.id,
+            "no_transaksi": t.no_transaksi,
+            "tanggal": t.tanggal.isoformat(),
+            "kasir": t.user.nama if t.user else "-",
+            "total": float(t.total),
+            "bayar": float(t.bayar),
+            "kembalian": float(t.kembalian),
+            "detail": [
+                {
+                    "nama_barang": d.nama_barang,
+                    "qty": float(d.qty),
+                    "sat": d.sat,
+                    "harga": float(d.harga),
+                    "diskon": float(d.diskon),
+                    "total": float(d.total),
+                }
+                for d in t.detail
+            ],
+        })
+    return result

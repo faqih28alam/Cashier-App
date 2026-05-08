@@ -18,8 +18,19 @@ class BarangCreate(BaseModel):
     stok_minimum: Decimal = Decimal("0")
 
 
-class BarangUpdate(BarangCreate):
+class BarangUpdate(BaseModel):
     barcode: Optional[str] = None
+    nama_barang: Optional[str] = None
+    id_kategori: Optional[int] = None
+    sat: Optional[str] = None
+    hpp: Optional[Decimal] = None
+    harga_1: Optional[Decimal] = None
+    harga_2: Optional[Decimal] = None
+    min_qty_harga_2: Optional[int] = None
+    harga_3: Optional[Decimal] = None
+    min_qty_harga_3: Optional[int] = None
+    stok: Optional[Decimal] = None
+    stok_minimum: Optional[Decimal] = None
 
 
 class BarangOut(BarangCreate):

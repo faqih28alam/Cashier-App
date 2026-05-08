@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { Trash2, Edit3 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getUser } from "@/lib/auth";
@@ -7,6 +7,13 @@ import { toast } from "@/components/shared/Toast";
 import { NumpadPopup } from "@/components/pos/NumpadPopup";
 import { PaymentScreen } from "@/components/pos/PaymentScreen";
 import { ReceiptPreview } from "@/components/pos/ReceiptPreview";
+
+interface StoreSetting {
+  nama_toko: string;
+  alamat: string;
+  telepon: string;
+  receipt_footer: string;
+}
 
 interface Barang {
   barcode: string;
@@ -49,8 +56,14 @@ export default function KasirPage() {
   const [showPayment, setShowPayment] = useState(false);
   const [receipt, setReceipt] = useState<null | {
     noTransaksi: string; tanggal: string; bayar: number; kembalian: number;
+    items: TransaksiItem[]; total: number;
   }>(null);
   const [paying, setPaying] = useState(false);
+  const [setting, setSetting] = useState<StoreSetting>({ nama_toko: "Kasir App", alamat: "", telepon: "", receipt_footer: "Terima Kasih!" });
+
+  useEffect(() => {
+    api.get<StoreSetting>("/setting/").then(setSetting).catch(() => {});
+  }, []);
 
   const total = items.reduce((s, i) => s + i.total, 0);
   const user = getUser();
@@ -106,14 +119,23 @@ export default function KasirPage() {
 
   async function handlePayment(bayar: number) {
     setPaying(true);
+    const snapshot = [...items];
+    const snapshotTotal = snapshot.reduce((s, i) => s + i.total, 0);
     try {
       const res = await api.post<{ id: number; no_transaksi: string; tanggal: string; bayar: number; kembalian: number }>(
         "/kasir/transaksi",
         { bayar, detail: items.map((i) => ({ barcode: i.barcode, nama_barang: i.nama_barang, sat: i.sat, qty: i.qty, hpp: i.hpp, harga: i.harga, diskon: i.diskon })) }
       );
-      setShowPayment(false);
-      setReceipt({ noTransaksi: res.no_transaksi, tanggal: new Date(res.tanggal).toLocaleString("id-ID"), bayar: res.bayar, kembalian: res.kembalian });
       setItems([]);
+      setShowPayment(false);
+      setReceipt({
+        noTransaksi: res.no_transaksi,
+        tanggal: new Date(res.tanggal).toLocaleString("id-ID"),
+        bayar: res.bayar,
+        kembalian: res.kembalian,
+        items: snapshot,
+        total: snapshotTotal,
+      });
     } catch (err) {
       toast((err as Error).message, "error");
     } finally {
@@ -219,11 +241,14 @@ export default function KasirPage() {
           noTransaksi={receipt.noTransaksi}
           tanggal={receipt.tanggal}
           kasir={user?.nama ?? ""}
-          items={items}
-          total={total}
+          items={receipt.items}
+          total={receipt.total}
           bayar={receipt.bayar}
           kembalian={receipt.kembalian}
-          storeName="Kasir App"
+          storeName={setting.nama_toko}
+          storeAddress={setting.alamat}
+          storeTelepon={setting.telepon}
+          footer={setting.receipt_footer}
           onClose={() => { setReceipt(null); barcodeRef.current?.focus(); }}
         />
       )}

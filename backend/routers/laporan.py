@@ -38,3 +38,13 @@ def laporan_stok(
     _: Annotated[User, Depends(require_role("admin", "owner"))],
 ):
     return laporan_service.stok_list(db)
+
+
+@router.get("/transaksi")
+def riwayat_transaksi(
+    db: Annotated[Session, Depends(get_db)],
+    _: Annotated[User, Depends(require_role("admin", "owner"))],
+    tgl_mulai: date = Query(...),
+    tgl_selesai: date = Query(...),
+):
+    return laporan_service.transaksi_list(db, tgl_mulai, tgl_selesai)

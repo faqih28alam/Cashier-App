@@ -191,3 +191,18 @@ def update_user(
     db.commit()
     db.refresh(user)
     return user
+
+
+@router.delete("/user/{id}", status_code=204)
+def delete_user(
+    id: int,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(require_role("admin", "owner"))],
+):
+    if id == current_user.id:
+        raise HTTPException(status_code=400, detail="Tidak bisa menghapus akun sendiri")
+    user = db.get(User, id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User tidak ditemukan")
+    db.delete(user)
+    db.commit()
