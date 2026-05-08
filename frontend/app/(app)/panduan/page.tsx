@@ -309,6 +309,20 @@ export default function PanduanPage() {
               ))}
             </div>
           </Section>
+
+          {/* Developer credit */}
+          <div className="border-t pt-6 mt-2 text-center text-sm text-gray-400">
+            <p>Dikembangkan oleh{" "}
+              <a
+                href="https://faqihalam.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                faqih28alam
+              </a>
+            </p>
+          </div>
         </div>
       </main>
     </div>
