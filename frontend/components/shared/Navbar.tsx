@@ -1,7 +1,8 @@
 "use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { getUser, clearAuth } from "@/lib/auth";
+import { getUser, clearAuth, AuthUser } from "@/lib/auth";
 
 const NAV = [
   { href: "/kasir",    label: "KASIR",    roles: ["kasir", "admin", "owner"] },
@@ -15,7 +16,11 @@ const NAV = [
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const user = getUser();
+  const [user, setUser] = useState<AuthUser | null>(null);
+
+  useEffect(() => {
+    setUser(getUser());
+  }, []);
 
   function handleLogout() {
     clearAuth();

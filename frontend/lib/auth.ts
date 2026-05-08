@@ -2,6 +2,7 @@ import Cookies from "js-cookie";
 
 const TOKEN_KEY = "cashier_token";
 const USER_KEY = "cashier_user";
+const SESSION_COOKIE = "cashier_session"; // lightweight cookie for middleware
 
 export interface AuthUser {
   id: number;
@@ -12,16 +13,21 @@ export interface AuthUser {
 }
 
 export function saveAuth(token: string, user: AuthUser) {
-  Cookies.set(TOKEN_KEY, token, { expires: 0.5 }); // 12 hours
-  Cookies.set(USER_KEY, JSON.stringify(user), { expires: 0.5 });
+  // localStorage — used by api.ts for Authorization header (client-side only)
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
+  // cookie — used by middleware for server-side route protection
+  Cookies.set(SESSION_COOKIE, user.role, { expires: 0.5, path: "/" });
 }
 
 export function getToken(): string | undefined {
-  return Cookies.get(TOKEN_KEY);
+  if (typeof window === "undefined") return undefined;
+  return localStorage.getItem(TOKEN_KEY) ?? undefined;
 }
 
 export function getUser(): AuthUser | null {
-  const raw = Cookies.get(USER_KEY);
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem(USER_KEY);
   if (!raw) return null;
   try {
     return JSON.parse(raw) as AuthUser;
@@ -31,8 +37,9 @@ export function getUser(): AuthUser | null {
 }
 
 export function clearAuth() {
-  Cookies.remove(TOKEN_KEY);
-  Cookies.remove(USER_KEY);
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+  Cookies.remove(SESSION_COOKIE, { path: "/" });
 }
 
 export function isAuthenticated(): boolean {

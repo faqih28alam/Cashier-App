@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend — Cashier App
 
-## Getting Started
+Next.js frontend for the Cashier App POS system. Runs on `http://localhost:3000`.
 
-First, run the development server:
+## Stack
+
+| | |
+|---|---|
+| Framework | Next.js 15 (App Router) + TypeScript |
+| Styling | Tailwind CSS |
+| Charts | Recharts |
+| Icons | Lucide React |
+| Auth | JWT stored in cookies (`js-cookie`) |
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.local.example .env.local   # or create manually (see below)
+npm run dev                         # starts on http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**.env.local**
+```
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> Backend must be running on port 8000 before using the app.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Commands
 
-## Learn More
+```bash
+npm run dev      # development server with hot reload
+npm run build    # production build + type check
+npm run start    # serve production build
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+frontend/
+├── app/
+│   ├── (auth)/login/      # Login page (no navbar)
+│   ├── (app)/             # Protected pages (with navbar)
+│   │   ├── layout.tsx     # Shared layout with Navbar
+│   │   ├── kasir/         # POS — main cashier screen
+│   │   ├── master/        # Product CRUD
+│   │   ├── purchas/       # Purchase management
+│   │   ├── keuangan/      # Finance ledger
+│   │   ├── laporan/       # Reports + analytics
+│   │   └── setting/       # App configuration
+│   ├── layout.tsx         # Root layout (ToastContainer)
+│   └── page.tsx           # Redirects to /kasir
+├── components/
+│   ├── pos/               # POS-specific components
+│   │   ├── NumpadPopup    # Quantity input overlay
+│   │   ├── PaymentScreen  # Payment modal with numpad
+│   │   └── ReceiptPreview # Receipt popup after payment
+│   └── shared/
+│       ├── Navbar         # Top navigation bar
+│       ├── DataTable      # Reusable table component
+│       ├── Modal          # Generic modal wrapper
+│       └── Toast          # Toast notification system
+├── lib/
+│   ├── api.ts             # Fetch wrapper → backend API
+│   └── auth.ts            # JWT cookie helpers
+└── middleware.ts           # Route protection by role
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Pages & Access
 
-## Deploy on Vercel
+| Route | Role Access | Description |
+|---|---|---|
+| `/login` | Public | Login form |
+| `/kasir` | All | POS cashier screen |
+| `/master` | Admin, Owner | Product CRUD |
+| `/purchas` | Admin, Owner | Purchase management |
+| `/keuangan` | Admin, Owner | Cash flow ledger |
+| `/laporan` | Admin, Owner | Sales reports + charts |
+| `/setting` | Admin, Owner | Store & printer config |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Barcode Scanner
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The scanner works in USB HID mode — it sends keystrokes directly into the browser. The `/kasir` page keeps the barcode input auto-focused at all times. No driver or extra configuration needed.
