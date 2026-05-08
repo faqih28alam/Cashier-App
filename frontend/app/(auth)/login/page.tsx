@@ -35,12 +35,17 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#1a1f2e] gap-6">
+      {/* Brand */}
+      <h1 className="text-3xl font-extrabold tracking-widest text-[#e8473f] uppercase select-none">
+        Kasir App
+      </h1>
+
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8">
         {/* Logo */}
-        <div className="flex justify-center mb-5">
-          <div className="bg-gray-900 rounded-2xl w-16 h-16 flex items-center justify-center">
-            <svg viewBox="0 0 24 24" fill="none" className="w-9 h-9 text-white" stroke="currentColor" strokeWidth={1.5}>
+        <div className="flex justify-center mb-4">
+          <div className="bg-[#1a1f2e] rounded-2xl w-14 h-14 flex items-center justify-center">
+            <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8 text-white" stroke="currentColor" strokeWidth={1.5}>
               <rect x="2" y="3" width="20" height="14" rx="2" strokeLinejoin="round" />
               <path d="M8 21h8M12 17v4" strokeLinecap="round" />
               <path d="M6 8h.01M6 11h.01M9 8h6M9 11h6" strokeLinecap="round" />
@@ -48,8 +53,8 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Store name */}
-        <h1 className="text-xl font-bold text-gray-800 text-center">{namaToko}</h1>
+        {/* Store name from settings */}
+        <h2 className="text-lg font-bold text-gray-800 text-center">{namaToko}</h2>
         <p className="text-sm text-gray-400 text-center mb-6">Masuk untuk melanjutkan</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
