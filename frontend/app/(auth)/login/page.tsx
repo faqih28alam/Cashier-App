@@ -88,6 +88,19 @@ export default function LoginPage() {
           </button>
         </form>
       </div>
+
+      {/* Developer credit */}
+      <p className="text-xs text-gray-500">
+        Built by{" "}
+        <a
+          href="https://faqihalam.vercel.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-gray-400 hover:text-[#e8473f] transition-colors"
+        >
+          faqih28alam
+        </a>
+      </p>
     </div>
   );
 }
