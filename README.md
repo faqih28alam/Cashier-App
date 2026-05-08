@@ -3,7 +3,8 @@
 A web-based Point of Sale (POS) system for retail stores. Runs offline on localhost, accessible from any device on the same local network.
 
 ---
-
+![alt text](image.png)
+---
 ## Architecture
 
 ```
