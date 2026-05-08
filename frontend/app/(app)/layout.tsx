@@ -1,0 +1,10 @@
+import { Navbar } from "@/components/shared/Navbar";
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col h-screen overflow-hidden">
+      <Navbar />
+      <main className="flex-1 overflow-auto">{children}</main>
+    </div>
+  );
+}
