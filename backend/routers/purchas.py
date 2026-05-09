@@ -1,6 +1,7 @@
 from datetime import date
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from dependencies import get_db, get_current_user, require_role
@@ -22,9 +23,9 @@ def list_pembelian(
 ):
     q = db.query(Pembelian)
     if tgl_mulai:
-        q = q.filter(Pembelian.tanggal >= tgl_mulai)
+        q = q.filter(func.date(Pembelian.tanggal) >= tgl_mulai)
     if tgl_selesai:
-        q = q.filter(Pembelian.tanggal <= tgl_selesai)
+        q = q.filter(func.date(Pembelian.tanggal) <= tgl_selesai)
     return q.order_by(Pembelian.tanggal.desc()).all()
 
 
