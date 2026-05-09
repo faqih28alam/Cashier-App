@@ -62,6 +62,7 @@ export default function KasirPage() {
   }>(null);
   const [paying, setPaying] = useState(false);
   const [setting, setSetting] = useState<StoreSetting>({ nama_toko: "Kasir App", alamat: "", telepon: "", receipt_footer: "Terima Kasih!" });
+  const logoUrl = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/static/logo.png`;
 
   useEffect(() => {
     api.get<StoreSetting>("/setting/").then(setSetting).catch(() => {
@@ -257,6 +258,7 @@ export default function KasirPage() {
           storeAddress={setting.alamat}
           storeTelepon={setting.telepon}
           footer={setting.receipt_footer}
+          logoUrl={logoUrl}
           onClose={() => { setReceipt(null); barcodeRef.current?.focus(); }}
         />
       )}

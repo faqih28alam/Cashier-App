@@ -21,6 +21,7 @@ interface Props {
   storeAddress?: string;
   storeTelepon?: string;
   footer?: string;
+  logoUrl?: string;
   onClose: () => void;
 }
 
@@ -30,11 +31,21 @@ function fmt(n: number) {
 
 export function ReceiptPreview({
   noTransaksi, tanggal, kasir, items, total, bayar, kembalian,
-  storeName, storeAddress, storeTelepon, footer, onClose,
+  storeName, storeAddress, storeTelepon, footer, logoUrl, onClose,
 }: Props) {
   return (
     <Modal title="Struk Transaksi" onClose={onClose} width="max-w-sm">
       <div className="font-mono text-xs bg-gray-50 p-4 rounded border">
+        {logoUrl && (
+          <div className="flex justify-center mb-1">
+            <img
+              src={logoUrl}
+              alt="Logo"
+              className="max-h-16 max-w-full object-contain"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          </div>
+        )}
         <p className="text-center font-bold text-sm">{storeName}</p>
         {storeAddress && <p className="text-center">{storeAddress}</p>}
         {storeTelepon && <p className="text-center">Telp: {storeTelepon}</p>}
