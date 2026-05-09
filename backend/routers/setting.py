@@ -1,4 +1,6 @@
-from typing import Annotated
+import platform
+import subprocess
+from typing import Annotated, List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -28,6 +30,27 @@ def get_setting_public(db: Annotated[Session, Depends(get_db)]):
 @router.get("/", response_model=SettingOut)
 def get_setting(db: Annotated[Session, Depends(get_db)], _: Annotated[User, Depends(get_current_user)]):
     return _get_or_create(db)
+
+
+@router.get("/printers")
+def list_printers(_: Annotated[User, Depends(get_current_user)]) -> dict:
+    printers: List[str] = []
+    try:
+        if platform.system() == "Windows":
+            result = subprocess.run(
+                ["wmic", "printer", "get", "name"],
+                capture_output=True, text=True, timeout=5,
+            )
+            for line in result.stdout.splitlines():
+                name = line.strip()
+                if name and name != "Name":
+                    printers.append(name)
+        else:
+            import glob
+            printers = sorted(glob.glob("/dev/usb/lp*") + glob.glob("/dev/ttyUSB*"))
+    except Exception:
+        pass
+    return {"printers": printers}
 
 
 @router.put("/", response_model=SettingOut)

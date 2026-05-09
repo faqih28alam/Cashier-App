@@ -8,14 +8,17 @@ def print_receipt(db: Session, trx: Transaksi) -> None:
     if not setting or not setting.printer_port:
         raise RuntimeError("Printer port belum dikonfigurasi")
 
-    from escpos.printer import Serial, Usb
+    from escpos.printer import Serial, Usb, Win32Raw
     from escpos import exceptions
 
     try:
-        if setting.printer_port.startswith("COM") or setting.printer_port.startswith("/dev/tty"):
-            p = Serial(setting.printer_port, baudrate=9600)
+        port = setting.printer_port
+        if port.startswith("COM") or port.startswith("/dev/tty"):
+            p = Serial(port, baudrate=9600)
+        elif port.upper() == "USB":
+            p = Usb(0x2AAF, 0x6020)
         else:
-            p = Usb(0x04b8, 0x0202)  # fallback USB; configure VID/PID in setting if needed
+            p = Win32Raw(port)  # Windows printer name, e.g. "XH-58PRO"
     except exceptions.DeviceNotFoundUnusableError as e:
         raise RuntimeError(str(e))
 
