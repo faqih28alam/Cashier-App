@@ -51,7 +51,9 @@ function fmt(n: number) {
 export default function KasirPage() {
   const barcodeRef = useRef<HTMLInputElement>(null);
   const [barcode, setBarcode] = useState("");
-  const [items, setItems] = useState<TransaksiItem[]>([]);
+  const [items, setItems] = useState<TransaksiItem[]>(() => {
+    try { return JSON.parse(localStorage.getItem("kasir_cart") ?? "[]"); } catch { return []; }
+  });
   const [numpadTarget, setNumpadTarget] = useState<number | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [receipt, setReceipt] = useState<null | {
@@ -66,6 +68,10 @@ export default function KasirPage() {
       toast("Gagal memuat pengaturan toko", "error");
     });
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("kasir_cart", JSON.stringify(items));
+  }, [items]);
 
   const total = items.reduce((s, i) => s + i.total, 0);
   const user = getUser();
