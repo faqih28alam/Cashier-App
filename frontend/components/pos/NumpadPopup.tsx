@@ -50,15 +50,10 @@ export function NumpadPopup({ productName, unit, harga, initialQty, initialDisko
   }
 
   function handleConfirm() {
-    let finalQty: number;
-    let finalDiskon: number = Number(diskon) || 0;
-
-    if (mode === "nominal") {
-      finalQty = nominalQty;
-    } else {
-      finalQty = parseFloat(qty);
-    }
-
+    const finalDiskon = Number(diskon) || 0;
+    const finalQty = mode === "nominal"
+      ? Math.round(nominalQty * 1000) / 1000   // max 3 decimal places
+      : parseFloat(qty);
     if (finalQty > 0) onConfirm(finalQty, finalDiskon);
   }
 
@@ -78,27 +73,31 @@ export function NumpadPopup({ productName, unit, harga, initialQty, initialDisko
       <div className="bg-white rounded-lg shadow-xl w-72">
 
         {/* Header display */}
-        <div className="bg-gray-800 text-white px-4 py-3 rounded-t-lg">
-          <p className="text-xs text-gray-400 truncate">{productName}</p>
-          <p className="text-3xl font-bold tracking-widest text-right">
+        <div className="bg-gray-800 text-white px-4 py-3 rounded-t-lg min-h-[80px]">
+          <p className="text-xs text-gray-400 truncate mb-1">{productName}</p>
+          <p className="text-3xl font-bold text-right leading-tight truncate">
             {(mode === "diskon" || mode === "nominal") && <span className="text-base font-normal mr-1">Rp</span>}
             {value}
             {mode === "qty" && <span className="text-lg font-normal ml-1">{unit}</span>}
           </p>
           {mode === "nominal" && harga > 0 && (
-            <p className="text-xs text-gray-400 text-right mt-0.5">
-              = {nominalQty % 1 === 0 ? nominalQty : nominalQty.toFixed(3)} {unit}
+            <p className="text-xs text-orange-300 text-right mt-0.5">
+              ≈ {(Math.round(nominalQty * 1000) / 1000)} {unit}
             </p>
           )}
         </div>
 
         {/* Mode tabs */}
-        <div className="grid grid-cols-3 border-b text-xs font-medium">
+        <div className="flex border-b text-xs font-semibold">
           {tabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setMode(t.key)}
-              className={`py-2 ${mode === t.key ? `${t.color} text-white` : "text-gray-500 hover:bg-gray-50"}`}
+              className={`flex-1 py-2.5 transition-colors ${
+                mode === t.key
+                  ? `${t.color} text-white`
+                  : "bg-gray-50 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              }`}
             >
               {t.label}
             </button>
