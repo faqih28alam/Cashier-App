@@ -197,7 +197,9 @@ export default function KasirPage() {
                   <td className="px-3 py-2 font-medium">{item.nama_barang}</td>
                   <td className="px-3 py-2 text-gray-500">{item.sat}</td>
                   <td className="px-3 py-2">
-                    <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">{item.qty}</span>
+                    <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">
+                      {Number(item.qty) % 1 === 0 ? item.qty : Number(item.qty).toFixed(3).replace(/\.?0+$/, "")}
+                    </span>
                   </td>
                   <td className="px-3 py-2 text-right">{fmt(item.harga)}</td>
                   <td className="px-3 py-2 text-right text-gray-500">{fmt(item.diskon)}</td>
@@ -271,6 +273,7 @@ export default function KasirPage() {
         <NumpadPopup
           productName={items[numpadTarget]?.nama_barang ?? ""}
           unit={items[numpadTarget]?.sat ?? "PCS"}
+          harga={items[numpadTarget]?.harga ?? 0}
           initialQty={items[numpadTarget]?.qty ?? 1}
           initialDiskon={items[numpadTarget]?.diskon ?? 0}
           onConfirm={(qty, diskon) => updateItem(numpadTarget, qty, diskon)}
