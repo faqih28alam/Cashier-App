@@ -15,6 +15,9 @@ Sebelum menjalankan aplikasi, pastikan Anda telah menginstal hal-hal berikut:
     *   *Penting:* Saat instalasi, centang kotak yang bertuliskan **"Add Python to PATH"**.
 2.  **Node.js (Versi LTS)**
     *   [Unduh Node.js](https://nodejs.org/)
+3.  **Git**
+    *   [Unduh Git](https://git-scm.com/download/win)
+    *   Diperlukan untuk menerima pembaruan aplikasi.
 
 ### 🚀 Instalasi (Lakukan Sekali Saja)
 
@@ -29,12 +32,21 @@ Sebelum menjalankan aplikasi, pastikan Anda telah menginstal hal-hal berikut:
 2.  Skrip akan memulai layanan backend dan frontend.
 3.  Setelah beberapa detik, browser web Anda akan otomatis terbuka ke alamat `http://localhost:3000`.
 
+### 🔄 Memperbarui Aplikasi
+
+Jika pengembang mengirimkan pembaruan:
+
+1.  Pastikan komputer terhubung ke internet.
+2.  Klik dua kali pada file **`update.bat`**.
+3.  Tunggu hingga proses selesai — aplikasi akan diperbarui secara otomatis.
+4.  Setelah selesai, jalankan kembali **`start.bat`** seperti biasa.
+
 ### ⚙️ Konfigurasi (Admin)
 
 #### 1. Printer Termal (Thermal Printer)
-*   Hubungkan printer Anda melalui USB atau Serial.
+*   Hubungkan printer Anda melalui USB dan instal driver printer.
 *   Buka menu **SETTING** di dalam aplikasi.
-*   Konfigurasikan **Printer Port** (contoh: `COM3` di Windows).
+*   Klik tombol **Scan** di kolom Printer Port — pilih nama printer dari daftar yang muncul.
 *   Atur **Lebar Kertas** (58mm atau 80mm).
 
 #### 2. Barcode Scanner
@@ -55,6 +67,9 @@ Before running the application, make sure you have the following installed:
     *   *Important:* During installation, check the box that says **"Add Python to PATH"**.
 2.  **Node.js (LTS version)**
     *   [Download Node.js](https://nodejs.org/)
+3.  **Git**
+    *   [Download Git](https://git-scm.com/download/win)
+    *   Required to receive application updates.
 
 ### 🚀 Installation (One-time Setup)
 
@@ -69,12 +84,21 @@ Before running the application, make sure you have the following installed:
 2.  The script will start the backend and frontend services.
 3.  After a few seconds, your default web browser will automatically open to `http://localhost:3000`.
 
+### 🔄 Updating the App
+
+When the developer sends an update:
+
+1.  Make sure the computer is connected to the internet.
+2.  Double-click **`update.bat`**.
+3.  Wait for the process to finish — the app will be updated automatically.
+4.  Once done, run **`start.bat`** as usual.
+
 ### ⚙️ Configuration (Admin)
 
 #### 1. Thermal Printer
-*   Connect your printer via USB or Serial.
+*   Connect your printer via USB and install the printer driver.
 *   Go to the **SETTING** menu in the app.
-*   Configure the **Printer Port** (e.g., `COM3` on Windows).
+*   Click the **Scan** button next to Printer Port — select your printer name from the list.
 *   Set the **Paper Width** (58mm or 80mm).
 
 #### 2. Barcode Scanner
