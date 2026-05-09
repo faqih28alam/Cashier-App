@@ -74,12 +74,29 @@ export default function MasterPage() {
     )},
   ];
 
+  const SATUAN = ["PCS","BTL","KG","GR","LTR","ML","BUNGKUS","SACHET","PAK","RENTENG","LUSIN","DUS","KARTON","SLOP","KODI"];
+
   const F = (key: keyof Barang, label: string, type = "text") => (
     <div key={key}>
       <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
-      <input type={type} value={String(form[key])}
-        onChange={(e) => setForm({ ...form, [key]: type === "number" ? Number(e.target.value) : e.target.value })}
-        className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300" />
+      {key === "sat" ? (
+        <>
+          <input
+            list="satuan-list"
+            value={String(form[key])}
+            onChange={(e) => setForm({ ...form, sat: e.target.value.toUpperCase() })}
+            className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+            placeholder="Pilih atau ketik satuan..."
+          />
+          <datalist id="satuan-list">
+            {SATUAN.map((s) => <option key={s} value={s} />)}
+          </datalist>
+        </>
+      ) : (
+        <input type={type} value={String(form[key])}
+          onChange={(e) => setForm({ ...form, [key]: type === "number" ? Number(e.target.value) : e.target.value })}
+          className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300" />
+      )}
     </div>
   );
 
