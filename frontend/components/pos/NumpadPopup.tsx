@@ -5,12 +5,18 @@ interface Props {
   productName: string;
   unit: string;
   initialQty: number;
-  onConfirm: (qty: number) => void;
+  initialDiskon: number;
+  onConfirm: (qty: number, diskon: number) => void;
   onCancel: () => void;
 }
 
-export function NumpadPopup({ productName, unit, initialQty, onConfirm, onCancel }: Props) {
-  const [value, setValue] = useState(String(initialQty));
+export function NumpadPopup({ productName, unit, initialQty, initialDiskon, onConfirm, onCancel }: Props) {
+  const [mode, setMode] = useState<"qty" | "diskon">("qty");
+  const [qty, setQty] = useState(String(initialQty));
+  const [diskon, setDiskon] = useState(String(initialDiskon));
+
+  const value = mode === "qty" ? qty : diskon;
+  const setValue = mode === "qty" ? setQty : setDiskon;
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -30,8 +36,9 @@ export function NumpadPopup({ productName, unit, initialQty, onConfirm, onCancel
   }
 
   function handleConfirm() {
-    const qty = parseInt(value, 10);
-    if (qty > 0) onConfirm(qty);
+    const q = parseInt(qty, 10);
+    const d = parseInt(diskon, 10);
+    if (q > 0) onConfirm(q, isNaN(d) ? 0 : d);
   }
 
   const keys = ["1","2","3","4","5","6","7","8","9","0","00","←"];
@@ -41,8 +48,29 @@ export function NumpadPopup({ productName, unit, initialQty, onConfirm, onCancel
       <div className="bg-white rounded-lg shadow-xl w-72">
         <div className="bg-gray-800 text-white px-4 py-3 rounded-t-lg">
           <p className="text-xs text-gray-400 truncate">{productName}</p>
-          <p className="text-3xl font-bold tracking-widest text-right">{value} <span className="text-lg font-normal">{unit}</span></p>
+          <p className="text-3xl font-bold tracking-widest text-right">
+            {mode === "diskon" && <span className="text-base font-normal mr-1">Rp</span>}
+            {value}
+            {mode === "qty" && <span className="text-lg font-normal ml-1">{unit}</span>}
+          </p>
         </div>
+
+        {/* Mode tabs */}
+        <div className="grid grid-cols-2 border-b text-sm font-medium">
+          <button
+            onClick={() => setMode("qty")}
+            className={`py-2 ${mode === "qty" ? "bg-gray-800 text-white" : "text-gray-500 hover:bg-gray-50"}`}
+          >
+            QTY
+          </button>
+          <button
+            onClick={() => setMode("diskon")}
+            className={`py-2 ${mode === "diskon" ? "bg-orange-500 text-white" : "text-gray-500 hover:bg-gray-50"}`}
+          >
+            DISKON (Rp)
+          </button>
+        </div>
+
         <div className="grid grid-cols-3 gap-1 p-3">
           {keys.map((k) => (
             <button

@@ -126,11 +126,11 @@ export default function KasirPage() {
     if (e.key === "Enter") lookupBarcode(barcode);
   }
 
-  function updateQty(idx: number, qty: number) {
+  function updateItem(idx: number, qty: number, diskon: number) {
     setItems((prev) => {
       const updated = [...prev];
-      const item = { ...updated[idx], qty };
-      item.total = qty * item.harga - item.diskon;
+      const item = { ...updated[idx], qty, diskon };
+      item.total = qty * item.harga - diskon;
       updated[idx] = item;
       return updated;
     });
@@ -254,7 +254,7 @@ export default function KasirPage() {
 
       {/* Action Panel */}
       <div className="w-36 bg-gray-800 flex flex-col gap-2 p-3 flex-shrink-0">
-        <button onClick={() => items.length > 0 && setNumpadTarget(items.length - 1)} className="bg-gray-600 hover:bg-gray-500 text-white text-xs py-2 px-2 rounded">Edit QTY</button>
+        <button onClick={() => items.length > 0 && setNumpadTarget(items.length - 1)} className="bg-gray-600 hover:bg-gray-500 text-white text-xs py-2 px-2 rounded">Edit QTY / Diskon</button>
         <button onClick={clearAll} className="bg-gray-600 hover:bg-gray-500 text-white text-xs py-2 px-2 rounded">Hapus Semua</button>
         <div className="flex-1" />
         <button
@@ -272,7 +272,8 @@ export default function KasirPage() {
           productName={items[numpadTarget]?.nama_barang ?? ""}
           unit={items[numpadTarget]?.sat ?? "PCS"}
           initialQty={items[numpadTarget]?.qty ?? 1}
-          onConfirm={(qty) => updateQty(numpadTarget, qty)}
+          initialDiskon={items[numpadTarget]?.diskon ?? 0}
+          onConfirm={(qty, diskon) => updateItem(numpadTarget, qty, diskon)}
           onCancel={() => { setNumpadTarget(null); barcodeRef.current?.focus(); }}
         />
       )}
