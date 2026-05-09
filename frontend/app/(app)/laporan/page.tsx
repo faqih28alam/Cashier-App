@@ -7,6 +7,7 @@ import {
 import { TrendingUp, ShoppingCart, BarChart2, Package } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "@/components/shared/Toast";
+import { DataTable } from "@/components/shared/DataTable";
 
 function today() { return new Date().toISOString().slice(0, 10); }
 function firstOfMonth() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-01`; }
@@ -80,8 +81,6 @@ export default function LaporanPage() {
   const customTrx = custom.reduce((s, r) => s + Number(r.jumlah_transaksi), 0);
 
   const chart14 = today14.map((r) => ({ ...r, total_penjualan: Number(r.total_penjualan), label: fmtDate(r.tanggal) }));
-  const topMax = top.length > 0 ? Math.max(...top.map((r) => Number(r.total_penjualan))) : 1;
-
   return (
     <div className="p-5 space-y-5">
       <div>
@@ -113,18 +112,18 @@ export default function LaporanPage() {
           </ResponsiveContainer>
         </div>
 
-        {/* Bar chart — top products */}
+        {/* Top products table */}
         <div className="bg-white rounded-lg border p-4">
           <p className="text-sm font-semibold text-gray-700 mb-3">Produk Terlaris Bulan Ini</p>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={top.map((r) => ({ ...r, total_penjualan: Number(r.total_penjualan) }))} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={fmtShort} domain={[0, topMax]} />
-              <YAxis type="category" dataKey="nama_barang" tick={{ fontSize: 11 }} width={100} />
-              <Tooltip formatter={(v) => [`Rp ${fmt(Number(v))}`, "Penjualan"]} />
-              <Bar dataKey="total_penjualan" fill="#f97316" radius={[0, 3, 3, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <DataTable
+            columns={[
+              { key: "nama_barang", label: "Nama Barang", className: "font-medium" },
+              { key: "total_qty", label: "Total QTY", render: (r: TopRow) => fmt(r.total_qty) },
+              { key: "total_penjualan", label: "Total Penjualan", render: (r: TopRow) => `Rp ${fmt(r.total_penjualan)}` },
+            ]}
+            data={top}
+            keyField="barcode"
+          />
         </div>
       </div>
 
