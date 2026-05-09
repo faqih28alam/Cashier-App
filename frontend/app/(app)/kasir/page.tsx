@@ -51,6 +51,7 @@ function fmt(n: number) {
 export default function KasirPage() {
   const barcodeRef = useRef<HTMLInputElement>(null);
   const [barcode, setBarcode] = useState("");
+  const [searchResults, setSearchResults] = useState<Barang[]>([]);
   const [items, setItems] = useState<TransaksiItem[]>(() => {
     try { return JSON.parse(localStorage.getItem("kasir_cart") ?? "[]"); } catch { return []; }
   });
@@ -74,31 +75,54 @@ export default function KasirPage() {
     localStorage.setItem("kasir_cart", JSON.stringify(items));
   }, [items]);
 
+  useEffect(() => {
+    if (!barcode.trim()) { setSearchResults([]); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await api.get<Barang[]>("/master/barang", { q: barcode.trim() });
+        setSearchResults(res.slice(0, 8));
+      } catch { setSearchResults([]); }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [barcode]);
+
   const total = items.reduce((s, i) => s + i.total, 0);
   const user = getUser();
 
+  const addBarang = useCallback((barang: Barang) => {
+    setItems((prev) => {
+      const idx = prev.findIndex((i) => i.barcode === barang.barcode);
+      if (idx >= 0) {
+        const updated = [...prev];
+        const newQty = updated[idx].qty + 1;
+        const harga = resolvePrice(barang, newQty);
+        updated[idx] = { ...updated[idx], qty: newQty, harga, total: newQty * harga - updated[idx].diskon };
+        return updated;
+      }
+      const harga = resolvePrice(barang, 1);
+      return [...prev, { barcode: barang.barcode, nama_barang: barang.nama_barang, sat: barang.sat, qty: 1, hpp: barang.hpp, harga, diskon: 0, total: harga }];
+    });
+  }, []);
+
   const lookupBarcode = useCallback(async (code: string) => {
     if (!code.trim()) return;
+    setSearchResults([]);
     try {
       const barang = await api.get<Barang>(`/master/barang/${code.trim()}`);
-      setItems((prev) => {
-        const idx = prev.findIndex((i) => i.barcode === barang.barcode);
-        if (idx >= 0) {
-          const updated = [...prev];
-          const newQty = updated[idx].qty + 1;
-          const harga = resolvePrice(barang, newQty);
-          updated[idx] = { ...updated[idx], qty: newQty, harga, total: newQty * harga - updated[idx].diskon };
-          return updated;
-        }
-        const harga = resolvePrice(barang, 1);
-        return [...prev, { barcode: barang.barcode, nama_barang: barang.nama_barang, sat: barang.sat, qty: 1, hpp: barang.hpp, harga, diskon: 0, total: harga }];
-      });
+      addBarang(barang);
     } catch {
       toast(`Barcode "${code}" tidak ditemukan`, "error");
     }
     setBarcode("");
     barcodeRef.current?.focus();
-  }, []);
+  }, [addBarang]);
+
+  function selectFromSearch(barang: Barang) {
+    addBarang(barang);
+    setSearchResults([]);
+    setBarcode("");
+    barcodeRef.current?.focus();
+  }
 
   function handleBarcodeKey(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") lookupBarcode(barcode);
@@ -193,16 +217,36 @@ export default function KasirPage() {
         </div>
 
         {/* Barcode input bar */}
-        <div className="bg-white border-t px-4 py-2 flex items-center gap-3">
-          <input
-            ref={barcodeRef}
-            autoFocus
-            value={barcode}
-            onChange={(e) => setBarcode(e.target.value)}
-            onKeyDown={handleBarcodeKey}
-            placeholder="Scan / ketik barcode..."
-            className="flex-1 border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-          />
+        <div className="bg-white border-t px-4 py-2 flex items-center gap-3 relative">
+          <div className="flex-1 relative">
+            <input
+              ref={barcodeRef}
+              autoFocus
+              value={barcode}
+              onChange={(e) => setBarcode(e.target.value)}
+              onKeyDown={handleBarcodeKey}
+              onBlur={() => setTimeout(() => setSearchResults([]), 150)}
+              placeholder="Scan barcode atau ketik nama barang..."
+              className="w-full border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+            />
+            {searchResults.length > 0 && (
+              <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border rounded shadow-lg z-20 max-h-64 overflow-y-auto">
+                {searchResults.map((b) => (
+                  <button
+                    key={b.barcode}
+                    onMouseDown={() => selectFromSearch(b)}
+                    className="flex items-center justify-between w-full px-3 py-2 hover:bg-blue-50 text-sm border-b last:border-0 text-left"
+                  >
+                    <div>
+                      <span className="font-medium text-gray-800">{b.nama_barang}</span>
+                      <span className="text-gray-400 text-xs ml-2">{b.barcode}</span>
+                    </div>
+                    <span className="text-gray-600 font-medium ml-4">Rp {b.harga_1.toLocaleString("id-ID")}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button onClick={() => lookupBarcode(barcode)} className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-1.5 rounded text-sm">Cari</button>
           <span className="text-gray-400 text-xs">|</span>
           <span className="text-sm text-gray-500">TRANSAKSI:</span>
