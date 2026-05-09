@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Printer } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "@/components/shared/Toast";
 
@@ -33,6 +33,7 @@ export default function RiwayatTransaksiPage() {
   const [to, setTo] = useState(today());
   const [data, setData] = useState<TrxRow[]>([]);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const [printing, setPrinting] = useState<number | null>(null);
 
   async function load() {
     try {
@@ -43,6 +44,19 @@ export default function RiwayatTransaksiPage() {
   }
 
   useEffect(() => { load(); }, []);
+
+  async function handleReprint(e: React.MouseEvent, id: number) {
+    e.stopPropagation();
+    setPrinting(id);
+    try {
+      await api.post(`/print/receipt/${id}`, {});
+      toast("Struk dicetak", "success");
+    } catch (err) {
+      toast((err as Error).message, "error");
+    } finally {
+      setPrinting(null);
+    }
+  }
 
   function toggle(id: number) {
     setExpanded((prev) => {
@@ -128,6 +142,16 @@ export default function RiwayatTransaksiPage() {
                     ))}
                   </tbody>
                 </table>
+                <div className="flex justify-end mt-2">
+                  <button
+                    onClick={(e) => handleReprint(e, row.id)}
+                    disabled={printing === row.id}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-white rounded text-xs"
+                  >
+                    <Printer size={12} />
+                    {printing === row.id ? "Mencetak..." : "Cetak Ulang"}
+                  </button>
+                </div>
               </div>
             )}
           </div>
