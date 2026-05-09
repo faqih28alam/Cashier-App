@@ -3,6 +3,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { Trash2, Edit3 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getUser } from "@/lib/auth";
+import { useDebounce } from "@/lib/useDebounce";
 import { toast } from "@/components/shared/Toast";
 import { NumpadPopup } from "@/components/pos/NumpadPopup";
 import { PaymentScreen } from "@/components/pos/PaymentScreen";
@@ -52,6 +53,7 @@ export default function KasirPage() {
   const barcodeRef = useRef<HTMLInputElement>(null);
   const [barcode, setBarcode] = useState("");
   const [searchResults, setSearchResults] = useState<Barang[]>([]);
+  const debouncedBarcode = useDebounce(barcode, 300);
   const [items, setItems] = useState<TransaksiItem[]>(() => {
     try { return JSON.parse(localStorage.getItem("kasir_cart") ?? "[]"); } catch { return []; }
   });
@@ -76,15 +78,11 @@ export default function KasirPage() {
   }, [items]);
 
   useEffect(() => {
-    if (!barcode.trim()) { setSearchResults([]); return; }
-    const timer = setTimeout(async () => {
-      try {
-        const res = await api.get<Barang[]>("/master/barang", { q: barcode.trim() });
-        setSearchResults(res.slice(0, 8));
-      } catch { setSearchResults([]); }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [barcode]);
+    if (!debouncedBarcode.trim()) { setSearchResults([]); return; }
+    api.get<Barang[]>("/master/barang", { q: debouncedBarcode.trim() })
+      .then((res) => setSearchResults(res.slice(0, 8)))
+      .catch(() => setSearchResults([]));
+  }, [debouncedBarcode]);
 
   const total = items.reduce((s, i) => s + i.total, 0);
   const user = getUser();
