@@ -1,4 +1,7 @@
 "use client";
+import { useState } from "react";
+import { api } from "@/lib/api";
+import { toast } from "@/components/shared/Toast";
 import { Modal } from "@/components/shared/Modal";
 
 interface Item {
@@ -22,6 +25,7 @@ interface Props {
   storeTelepon?: string;
   footer?: string;
   logoUrl?: string;
+  transaksiId?: number;
   onClose: () => void;
 }
 
@@ -31,8 +35,23 @@ function fmt(n: number) {
 
 export function ReceiptPreview({
   noTransaksi, tanggal, kasir, items, total, bayar, kembalian,
-  storeName, storeAddress, storeTelepon, footer, logoUrl, onClose,
+  storeName, storeAddress, storeTelepon, footer, logoUrl, transaksiId, onClose,
 }: Props) {
+  const [printing, setPrinting] = useState(false);
+
+  async function handlePrint() {
+    if (!transaksiId) return;
+    setPrinting(true);
+    try {
+      await api.post(`/print/receipt/${transaksiId}`, {});
+      toast("Struk dicetak", "success");
+    } catch (err) {
+      toast((err as Error).message, "error");
+    } finally {
+      setPrinting(false);
+    }
+  }
+
   return (
     <Modal title="Struk Transaksi" onClose={onClose} width="max-w-sm">
       <div className="font-mono text-xs bg-gray-50 p-4 rounded border">
@@ -70,9 +89,15 @@ export function ReceiptPreview({
         <p>{"=".repeat(32)}</p>
         <p className="text-center">{footer ?? "Terima Kasih!"}</p>
       </div>
-      <button onClick={onClose} className="mt-4 w-full bg-gray-800 hover:bg-gray-700 text-white py-2 rounded text-sm font-medium">
-        Tutup
-      </button>
+      <div className="mt-4 flex gap-2">
+        <button onClick={onClose} className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded text-sm font-medium">
+          Tutup
+        </button>
+        <button onClick={handlePrint} disabled={printing || !transaksiId}
+          className="flex-1 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-white py-2 rounded text-sm font-medium">
+          {printing ? "Mencetak..." : "Cetak Struk"}
+        </button>
+      </div>
     </Modal>
   );
 }

@@ -57,7 +57,7 @@ export default function KasirPage() {
   const [numpadTarget, setNumpadTarget] = useState<number | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [receipt, setReceipt] = useState<null | {
-    noTransaksi: string; tanggal: string; bayar: number; kembalian: number;
+    id: number; noTransaksi: string; tanggal: string; bayar: number; kembalian: number;
     items: TransaksiItem[]; total: number;
   }>(null);
   const [paying, setPaying] = useState(false);
@@ -138,6 +138,7 @@ export default function KasirPage() {
       setItems([]);
       setShowPayment(false);
       setReceipt({
+        id: res.id,
         noTransaksi: res.no_transaksi,
         tanggal: new Date(res.tanggal).toLocaleString("id-ID"),
         bayar: res.bayar,
@@ -259,6 +260,7 @@ export default function KasirPage() {
           storeTelepon={setting.telepon}
           footer={setting.receipt_footer}
           logoUrl={logoUrl}
+          transaksiId={receipt.id}
           onClose={() => { setReceipt(null); barcodeRef.current?.focus(); }}
         />
       )}
