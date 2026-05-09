@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Props {
   total: number;
@@ -26,6 +26,17 @@ export function PaymentScreen({ total, onConfirm, onCancel, loading }: Props) {
       return Number(s + key);
     });
   }
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key >= "0" && e.key <= "9") { pressNumpad(e.key); return; }
+      if (e.key === "Backspace") { pressNumpad("←"); return; }
+      if (e.key === "Enter" && bayar >= total && !loading) { onConfirm(bayar); return; }
+      if (e.key === "Escape") { onCancel(); return; }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [bayar, total, loading]);
 
   const keys = ["1","2","3","4","5","6","7","8","9","0","00","←"];
 
