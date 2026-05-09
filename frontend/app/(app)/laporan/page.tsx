@@ -4,7 +4,7 @@ import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis,
   Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
-import { TrendingUp, ShoppingCart, BarChart2, Package } from "lucide-react";
+import { TrendingUp, ShoppingCart, BarChart2, Package, FileDown } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "@/components/shared/Toast";
 import { DataTable } from "@/components/shared/DataTable";
@@ -18,8 +18,8 @@ function fmtDate(s: string) { const d = new Date(s); return `${d.getDate()}/${d.
 
 interface PenjualanRow { tanggal: string; jumlah_transaksi: number; total_penjualan: number; }
 interface TopRow { barcode: string; nama_barang: string; total_qty: number; total_penjualan: number; }
-
 interface Summary { revenue: number; trx: number; }
+interface StoreSetting { nama_toko: string; alamat: string; telepon: string; }
 
 function StatCard({ title, value, sub, icon: Icon, color }: {
   title: string; value: string; sub: string; icon: React.ElementType; color: string;
@@ -46,14 +46,17 @@ export default function LaporanPage() {
   const [todaySummary, setTodaySummary] = useState<Summary>({ revenue: 0, trx: 0 });
   const [top, setTop] = useState<TopRow[]>([]);
   const [custom, setCustom] = useState<PenjualanRow[]>([]);
+  const [setting, setSetting] = useState<StoreSetting>({ nama_toko: "", alamat: "", telepon: "" });
+  const [exporting, setExporting] = useState(false);
 
   async function loadDashboard() {
     try {
-      const [t14, mon, tod, topProd] = await Promise.all([
+      const [t14, mon, tod, topProd, s] = await Promise.all([
         api.get<PenjualanRow[]>("/laporan/penjualan", { tgl_mulai: daysAgo(14), tgl_selesai: today() }),
         api.get<PenjualanRow[]>("/laporan/penjualan", { tgl_mulai: firstOfMonth(), tgl_selesai: today() }),
         api.get<PenjualanRow[]>("/laporan/penjualan", { tgl_mulai: today(), tgl_selesai: today() }),
         api.get<TopRow[]>("/laporan/produk-terlaris", { tgl_mulai: firstOfMonth(), tgl_selesai: today(), limit: 7 }),
+        api.get<StoreSetting>("/setting/"),
       ]);
       setToday14(t14);
       setMonthly(mon);
@@ -62,6 +65,7 @@ export default function LaporanPage() {
         trx: tod.reduce((s, r) => s + Number(r.jumlah_transaksi), 0),
       });
       setTop(topProd);
+      setSetting(s);
     } catch (err) { toast((err as Error).message, "error"); }
   }
 
@@ -79,13 +83,122 @@ export default function LaporanPage() {
   const monthlyTrx = monthly.reduce((s, r) => s + Number(r.jumlah_transaksi), 0);
   const customRevenue = custom.reduce((s, r) => s + Number(r.total_penjualan), 0);
   const customTrx = custom.reduce((s, r) => s + Number(r.jumlah_transaksi), 0);
-
   const chart14 = today14.map((r) => ({ ...r, total_penjualan: Number(r.total_penjualan), label: fmtDate(r.tanggal) }));
+
+  async function handleExportPDF() {
+    setExporting(true);
+    try {
+      const { default: jsPDF } = await import("jspdf");
+      const { default: autoTable } = await import("jspdf-autotable");
+
+      const doc = new jsPDF();
+      const pageW = doc.internal.pageSize.getWidth();
+      let y = 15;
+
+      // Header
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text(setting.nama_toko || "Laporan Penjualan", pageW / 2, y, { align: "center" });
+      y += 7;
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100);
+      if (setting.alamat) { doc.text(setting.alamat, pageW / 2, y, { align: "center" }); y += 5; }
+      if (setting.telepon) { doc.text(`Telp: ${setting.telepon}`, pageW / 2, y, { align: "center" }); y += 5; }
+      doc.text(`Periode: ${from} s/d ${to}`, pageW / 2, y, { align: "center" });
+      y += 5;
+      doc.text(`Dicetak: ${new Date().toLocaleString("id-ID")}`, pageW / 2, y, { align: "center" });
+      y += 8;
+
+      // Divider
+      doc.setDrawColor(200);
+      doc.line(14, y, pageW - 14, y);
+      y += 8;
+
+      // Summary
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0);
+      doc.text("Ringkasan Periode", 14, y);
+      y += 6;
+
+      autoTable(doc, {
+        startY: y,
+        head: [["Keterangan", "Nilai"]],
+        body: [
+          ["Total Penjualan", `Rp ${fmt(customRevenue)}`],
+          ["Jumlah Transaksi", String(customTrx)],
+          ["Rata-rata per Transaksi", `Rp ${customTrx > 0 ? fmt(Math.round(customRevenue / customTrx)) : 0}`],
+        ],
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [31, 41, 55] },
+        columnStyles: { 1: { halign: "right" } },
+        margin: { left: 14, right: 14 },
+      });
+      y = (doc as any).lastAutoTable.finalY + 10;
+
+      // Daily sales
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("Penjualan Harian", 14, y);
+      y += 6;
+
+      autoTable(doc, {
+        startY: y,
+        head: [["Tanggal", "Jumlah Transaksi", "Total Penjualan"]],
+        body: custom.map((r) => [r.tanggal, String(r.jumlah_transaksi), `Rp ${fmt(Number(r.total_penjualan))}`]),
+        foot: [["Total", String(customTrx), `Rp ${fmt(customRevenue)}`]],
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [31, 41, 55] },
+        footStyles: { fillColor: [243, 244, 246], textColor: [0, 0, 0], fontStyle: "bold" },
+        columnStyles: { 1: { halign: "center" }, 2: { halign: "right" } },
+        margin: { left: 14, right: 14 },
+      });
+      y = (doc as any).lastAutoTable.finalY + 10;
+
+      // Top products
+      if (top.length > 0) {
+        if (y > 220) { doc.addPage(); y = 15; }
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text("Produk Terlaris Bulan Ini", 14, y);
+        y += 6;
+
+        autoTable(doc, {
+          startY: y,
+          head: [["Nama Barang", "Total QTY", "Total Penjualan"]],
+          body: top.map((r) => [r.nama_barang, fmt(r.total_qty), `Rp ${fmt(Number(r.total_penjualan))}`]),
+          styles: { fontSize: 10 },
+          headStyles: { fillColor: [31, 41, 55] },
+          columnStyles: { 1: { halign: "center" }, 2: { halign: "right" } },
+          margin: { left: 14, right: 14 },
+        });
+      }
+
+      doc.save(`Laporan_${from}_${to}.pdf`);
+      toast("PDF berhasil diekspor", "success");
+    } catch (err) {
+      toast("Gagal ekspor PDF", "error");
+    } finally {
+      setExporting(false);
+    }
+  }
+
   return (
     <div className="p-5 space-y-5">
-      <div>
-        <h1 className="text-lg font-bold text-gray-800">Laporan Penjualan</h1>
-        <p className="text-xs text-gray-500 mt-0.5">Ringkasan pendapatan dan performa toko.</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-gray-800">Laporan Penjualan</h1>
+          <p className="text-xs text-gray-500 mt-0.5">Ringkasan pendapatan dan performa toko.</p>
+        </div>
+        <button
+          onClick={handleExportPDF}
+          disabled={exporting}
+          className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-white px-4 py-2 rounded text-sm font-medium"
+        >
+          <FileDown size={15} />
+          {exporting ? "Mengekspor..." : "Export PDF"}
+        </button>
       </div>
 
       {/* Summary cards */}
@@ -98,7 +211,6 @@ export default function LaporanPage() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Line chart — 14 days */}
         <div className="bg-white rounded-lg border p-4">
           <p className="text-sm font-semibold text-gray-700 mb-3">Revenue — 14 Hari Terakhir</p>
           <ResponsiveContainer width="100%" height={220}>
@@ -112,7 +224,6 @@ export default function LaporanPage() {
           </ResponsiveContainer>
         </div>
 
-        {/* Top products table */}
         <div className="bg-white rounded-lg border p-4">
           <p className="text-sm font-semibold text-gray-700 mb-3">Produk Terlaris Bulan Ini</p>
           <DataTable
