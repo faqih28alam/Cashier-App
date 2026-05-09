@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const PUBLIC_PATHS = ["/login"];
-const RESTRICTED_PATHS = ["/keuangan", "/laporan", "/master", "/setting"];
+const RESTRICTED_PATHS = ["/keuangan", "/laporan", "/penjualan", "/master", "/setting"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

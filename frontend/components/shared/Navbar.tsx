@@ -5,13 +5,14 @@ import { usePathname, useRouter } from "next/navigation";
 import { getUser, clearAuth, AuthUser } from "@/lib/auth";
 
 const NAV = [
-  { href: "/kasir",    label: "KASIR",    roles: ["kasir", "admin", "owner"] },
-  { href: "/purchas",  label: "PURCHAS",  roles: ["admin", "owner"] },
-  { href: "/keuangan", label: "KEUANGAN", roles: ["admin", "owner"] },
-  { href: "/laporan",  label: "LAPORAN",  roles: ["admin", "owner"] },
-  { href: "/master",   label: "MASTER",   roles: ["admin", "owner"] },
-  { href: "/setting",  label: "SETTING",  roles: ["admin", "owner"] },
-  { href: "/panduan",  label: "PANDUAN",  roles: ["kasir", "admin", "owner"] },
+  { href: "/kasir",     label: "KASIR",     roles: ["kasir", "admin", "owner"] },
+  { href: "/purchas",   label: "PURCHAS",   roles: ["admin", "owner"] },
+  { href: "/penjualan", label: "PENJUALAN", roles: ["admin", "owner"] },
+  { href: "/keuangan",  label: "KEUANGAN",  roles: ["admin", "owner"] },
+  { href: "/laporan",   label: "LAPORAN",   roles: ["admin", "owner"] },
+  { href: "/master",    label: "MASTER",    roles: ["admin", "owner"] },
+  { href: "/setting",   label: "SETTING",   roles: ["admin", "owner"] },
+  { href: "/panduan",   label: "PANDUAN",   roles: ["kasir", "admin", "owner"] },
 ];
 
 export function Navbar() {

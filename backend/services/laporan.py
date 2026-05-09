@@ -52,6 +52,33 @@ def produk_terlaris(db: Session, tgl_mulai: date, tgl_selesai: date, limit: int 
     return [r._asdict() for r in rows]
 
 
+def penjualan_detail(db: Session, tgl_mulai: date, tgl_selesai: date) -> list[dict]:
+    rows = (
+        db.query(
+            TransaksiDetail.id.label("id"),
+            func.date(Transaksi.tanggal).label("tanggal"),
+            Transaksi.no_transaksi,
+            TransaksiDetail.nama_barang,
+            TransaksiDetail.sat,
+            TransaksiDetail.qty,
+            TransaksiDetail.hpp,
+            TransaksiDetail.harga,
+            TransaksiDetail.diskon,
+            TransaksiDetail.total,
+            (TransaksiDetail.total - TransaksiDetail.hpp * TransaksiDetail.qty).label("laba_kotor"),
+        )
+        .join(TransaksiDetail, TransaksiDetail.id_transaksi == Transaksi.id)
+        .filter(
+            Transaksi.status == "paid",
+            func.date(Transaksi.tanggal) >= tgl_mulai,
+            func.date(Transaksi.tanggal) <= tgl_selesai,
+        )
+        .order_by(Transaksi.tanggal.desc(), Transaksi.id, TransaksiDetail.id)
+        .all()
+    )
+    return [r._asdict() for r in rows]
+
+
 def stok_list(db: Session) -> list[Barang]:
     return db.query(Barang).order_by(Barang.nama_barang).all()
 
