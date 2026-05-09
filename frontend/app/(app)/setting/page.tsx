@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
-import { getToken } from "@/lib/auth";
+import { getToken, getUser } from "@/lib/auth";
 import { toast } from "@/components/shared/Toast";
 
 interface Setting {
@@ -18,9 +18,13 @@ export default function SettingPage() {
   const [scanning, setScanning] = useState(false);
   const [logoKey, setLogoKey] = useState(Date.now());
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [showClearModal, setShowClearModal] = useState(false);
+  const [clearPassword, setClearPassword] = useState("");
+  const [clearing, setClearing] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+  const user = getUser();
 
   useEffect(() => {
     api.get<Setting>("/setting/").then(setForm).catch(() => {});
@@ -70,6 +74,17 @@ export default function SettingPage() {
       setLogoKey(Date.now());
       toast("Logo dihapus", "success");
     } catch { toast("Gagal menghapus logo", "error"); }
+  }
+
+  async function handleClearData() {
+    setClearing(true);
+    try {
+      await api.post("/setting/clear-data", { password: clearPassword });
+      toast("Semua data transaksi berhasil dihapus", "success");
+      setShowClearModal(false);
+      setClearPassword("");
+    } catch (err) { toast((err as Error).message, "error"); }
+    finally { setClearing(false); }
   }
 
   async function handleScanPrinters() {
@@ -181,6 +196,76 @@ export default function SettingPage() {
           {loading ? "Menyimpan..." : "Simpan Setting"}
         </button>
       </div>
+      {/* Danger Zone — owner only */}
+      {user?.role === "owner" && (
+        <div className="bg-white rounded-lg border border-red-200 p-5 mt-5">
+          <h2 className="text-sm font-bold text-red-700 mb-1">Danger Zone</h2>
+          <p className="text-xs text-gray-500 mb-4">
+            Hapus semua data transaksi, keuangan, dan pembelian. Data master barang, akun pengguna, dan setting <strong>tidak</strong> akan dihapus.
+          </p>
+          <button
+            onClick={() => { setClearPassword(""); setShowClearModal(true); }}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium"
+          >
+            Hapus Semua Data Transaksi
+          </button>
+        </div>
+      )}
+
+      {/* Clear data confirmation modal */}
+      {showClearModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm mx-4">
+            <div className="bg-red-600 text-white px-5 py-4 rounded-t-lg">
+              <h2 className="font-bold text-base">Hapus Semua Data Transaksi</h2>
+              <p className="text-xs text-red-200 mt-0.5">Tindakan ini tidak dapat dibatalkan</p>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="bg-red-50 border border-red-200 rounded p-3 text-xs text-red-700 space-y-1">
+                <p className="font-semibold">Data yang akan dihapus:</p>
+                <ul className="list-disc list-inside space-y-0.5 mt-1">
+                  <li>Seluruh riwayat transaksi penjualan</li>
+                  <li>Seluruh riwayat pembelian (purchas)</li>
+                  <li>Seluruh catatan keuangan</li>
+                </ul>
+                <p className="font-semibold mt-2">Data yang TIDAK dihapus:</p>
+                <ul className="list-disc list-inside space-y-0.5 mt-1">
+                  <li>Master barang &amp; stok</li>
+                  <li>Akun pengguna</li>
+                  <li>Setting toko</li>
+                </ul>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Masukkan password Anda untuk konfirmasi</label>
+                <input
+                  type="password"
+                  value={clearPassword}
+                  onChange={(e) => setClearPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && clearPassword && handleClearData()}
+                  placeholder="Password"
+                  autoFocus
+                  className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => { setShowClearModal(false); setClearPassword(""); }}
+                  className="px-4 py-2 text-sm border rounded hover:bg-gray-50"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleClearData}
+                  disabled={!clearPassword || clearing}
+                  className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-4 py-2 rounded text-sm font-medium"
+                >
+                  {clearing ? "Menghapus..." : "Ya, Hapus Semua"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

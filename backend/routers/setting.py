@@ -4,12 +4,19 @@ import shutil
 import subprocess
 from typing import Annotated, List
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from passlib.context import CryptContext
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from dependencies import get_db, get_current_user, require_role
+from models.keuangan import Keuangan
+from models.pembelian import Pembelian, PembelianDetail
 from models.setting import Setting
+from models.transaksi import Transaksi, TransaksiDetail
 from models.user import User
 from schemas.setting import SettingOut, SettingUpdate
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 router = APIRouter()
 
@@ -76,6 +83,28 @@ def list_printers(_: Annotated[User, Depends(get_current_user)]) -> dict:
     except Exception:
         pass
     return {"printers": printers}
+
+
+class ClearDataRequest(BaseModel):
+    password: str
+
+
+@router.post("/clear-data")
+def clear_data(
+    payload: ClearDataRequest,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(require_role("owner"))],
+):
+    if not pwd_context.verify(payload.password, current_user.password):
+        raise HTTPException(status_code=400, detail="Password salah")
+
+    db.query(TransaksiDetail).delete()
+    db.query(Transaksi).delete()
+    db.query(Keuangan).delete()
+    db.query(PembelianDetail).delete()
+    db.query(Pembelian).delete()
+    db.commit()
+    return {"message": "Semua data transaksi berhasil dihapus"}
 
 
 @router.put("/", response_model=SettingOut)
