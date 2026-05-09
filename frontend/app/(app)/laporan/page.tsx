@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis,
-  Tooltip, ResponsiveContainer, CartesianGrid,
+  Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from "recharts";
 import { TrendingUp, ShoppingCart, BarChart2, Package, FileDown } from "lucide-react";
 import { api } from "@/lib/api";
@@ -16,7 +16,7 @@ function fmt(n: number) { return Number(n).toLocaleString("id-ID"); }
 function fmtShort(n: number) { return n >= 1_000_000 ? `${(n/1_000_000).toFixed(1)}Jt` : n >= 1_000 ? `${(n/1_000).toFixed(0)}K` : String(n); }
 function fmtDate(s: string) { const d = new Date(s); return `${d.getDate()}/${d.getMonth()+1}`; }
 
-interface PenjualanRow { tanggal: string; jumlah_transaksi: number; total_penjualan: number; }
+interface PenjualanRow { tanggal: string; jumlah_transaksi: number; total_penjualan: number; laba_kotor: number; }
 interface TopRow { barcode: string; nama_barang: string; total_qty: number; total_penjualan: number; }
 interface Summary { revenue: number; trx: number; }
 interface StoreSetting { nama_toko: string; alamat: string; telepon: string; }
@@ -80,10 +80,17 @@ export default function LaporanPage() {
   useEffect(() => { loadCustom(); }, []);
 
   const monthlyRevenue = monthly.reduce((s, r) => s + Number(r.total_penjualan), 0);
+  const monthlyLaba = monthly.reduce((s, r) => s + Number(r.laba_kotor), 0);
   const monthlyTrx = monthly.reduce((s, r) => s + Number(r.jumlah_transaksi), 0);
   const customRevenue = custom.reduce((s, r) => s + Number(r.total_penjualan), 0);
+  const customLaba = custom.reduce((s, r) => s + Number(r.laba_kotor), 0);
   const customTrx = custom.reduce((s, r) => s + Number(r.jumlah_transaksi), 0);
-  const chart14 = today14.map((r) => ({ ...r, total_penjualan: Number(r.total_penjualan), label: fmtDate(r.tanggal) }));
+  const chart14 = today14.map((r) => ({
+    ...r,
+    total_penjualan: Number(r.total_penjualan),
+    laba_kotor: Number(r.laba_kotor),
+    label: fmtDate(r.tanggal),
+  }));
 
   async function handleExportPDF() {
     setExporting(true);
@@ -126,7 +133,9 @@ export default function LaporanPage() {
         startY: y,
         head: [["Keterangan", "Nilai"]],
         body: [
-          ["Total Penjualan", `Rp ${fmt(customRevenue)}`],
+          ["Total Penjualan (Omzet)", `Rp ${fmt(customRevenue)}`],
+          ["Laba Kotor", `Rp ${fmt(customLaba)}`],
+          ["Margin Laba", `${customRevenue > 0 ? ((customLaba / customRevenue) * 100).toFixed(1) : 0}%`],
           ["Jumlah Transaksi", String(customTrx)],
           ["Rata-rata per Transaksi", `Rp ${customTrx > 0 ? fmt(Math.round(customRevenue / customTrx)) : 0}`],
         ],
@@ -145,13 +154,13 @@ export default function LaporanPage() {
 
       autoTable(doc, {
         startY: y,
-        head: [["Tanggal", "Jumlah Transaksi", "Total Penjualan"]],
-        body: custom.map((r) => [r.tanggal, String(r.jumlah_transaksi), `Rp ${fmt(Number(r.total_penjualan))}`]),
-        foot: [["Total", String(customTrx), `Rp ${fmt(customRevenue)}`]],
+        head: [["Tanggal", "Jumlah Transaksi", "Omzet", "Laba Kotor"]],
+        body: custom.map((r) => [r.tanggal, String(r.jumlah_transaksi), `Rp ${fmt(Number(r.total_penjualan))}`, `Rp ${fmt(Number(r.laba_kotor))}`]),
+        foot: [["Total", String(customTrx), `Rp ${fmt(customRevenue)}`, `Rp ${fmt(customLaba)}`]],
         styles: { fontSize: 10 },
         headStyles: { fillColor: [31, 41, 55] },
         footStyles: { fillColor: [243, 244, 246], textColor: [0, 0, 0], fontStyle: "bold" },
-        columnStyles: { 1: { halign: "center" }, 2: { halign: "right" } },
+        columnStyles: { 1: { halign: "center" }, 2: { halign: "right" }, 3: { halign: "right" } },
         margin: { left: 14, right: 14 },
       });
       y = (doc as any).lastAutoTable.finalY + 10;
@@ -203,23 +212,25 @@ export default function LaporanPage() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Pendapatan Hari Ini" value={`Rp ${fmt(todaySummary.revenue)}`} sub={`${todaySummary.trx} transaksi`} icon={TrendingUp} color="bg-green-500" />
-        <StatCard title="Pendapatan Bulan Ini" value={`Rp ${fmt(monthlyRevenue)}`} sub={`${monthlyTrx} transaksi`} icon={BarChart2} color="bg-blue-500" />
-        <StatCard title="Produk Terlaris" value={top[0]?.nama_barang?.split(" ").slice(0,2).join(" ") ?? "-"} sub={top[0] ? `Rp ${fmt(top[0].total_penjualan)}` : "belum ada data"} icon={Package} color="bg-orange-500" />
+        <StatCard title="Omzet Hari Ini" value={`Rp ${fmt(todaySummary.revenue)}`} sub={`${todaySummary.trx} transaksi`} icon={TrendingUp} color="bg-green-500" />
+        <StatCard title="Omzet Bulan Ini" value={`Rp ${fmt(monthlyRevenue)}`} sub={`${monthlyTrx} transaksi`} icon={BarChart2} color="bg-blue-500" />
+        <StatCard title="Laba Kotor Bulan Ini" value={`Rp ${fmt(monthlyLaba)}`} sub={`Margin ${monthlyRevenue > 0 ? ((monthlyLaba / monthlyRevenue) * 100).toFixed(1) : 0}%`} icon={TrendingUp} color="bg-emerald-600" />
         <StatCard title="Total Transaksi Bulan Ini" value={String(monthlyTrx)} sub={`Rata-rata Rp ${monthlyTrx > 0 ? fmt(Math.round(monthlyRevenue / monthlyTrx)) : 0}`} icon={ShoppingCart} color="bg-purple-500" />
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white rounded-lg border p-4">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Revenue — 14 Hari Terakhir</p>
+          <p className="text-sm font-semibold text-gray-700 mb-3">Revenue vs Laba — 14 Hari Terakhir</p>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={chart14}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={fmtShort} />
-              <Tooltip formatter={(v) => [`Rp ${fmt(Number(v))}`, "Penjualan"]} labelFormatter={(l) => `Tgl ${l}`} />
+              <Tooltip formatter={(v, name) => [`Rp ${fmt(Number(v))}`, name === "total_penjualan" ? "Omzet" : "Laba Kotor"]} labelFormatter={(l) => `Tgl ${l}`} />
+              <Legend formatter={(v) => v === "total_penjualan" ? "Omzet" : "Laba Kotor"} wrapperStyle={{ fontSize: 11 }} />
               <Line type="monotone" dataKey="total_penjualan" stroke="#f97316" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="laba_kotor" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -246,17 +257,23 @@ export default function LaporanPage() {
           <span className="text-gray-400">s/d</span>
           <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="border rounded px-2 py-1 text-sm" />
           <button onClick={loadCustom} className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-1.5 rounded text-sm">Tampilkan</button>
-          <span className="ml-auto text-sm text-gray-500">
-            {customTrx} transaksi &nbsp;|&nbsp; <span className="font-bold text-gray-800">Rp {fmt(customRevenue)}</span>
+          <span className="ml-auto text-sm text-gray-500 flex items-center gap-3 flex-wrap">
+            {customTrx} transaksi &nbsp;|&nbsp;
+            Omzet: <span className="font-bold text-gray-800">Rp {fmt(customRevenue)}</span>
+            &nbsp;|&nbsp;
+            Laba: <span className="font-bold text-emerald-700">Rp {fmt(customLaba)}</span>
+            {customRevenue > 0 && <span className="text-xs text-gray-400">({((customLaba / customRevenue) * 100).toFixed(1)}%)</span>}
           </span>
         </div>
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={custom.map((r) => ({ ...r, total_penjualan: Number(r.total_penjualan), label: fmtDate(r.tanggal) }))}>
+          <BarChart data={custom.map((r) => ({ ...r, total_penjualan: Number(r.total_penjualan), laba_kotor: Number(r.laba_kotor), label: fmtDate(r.tanggal) }))}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis dataKey="label" tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} tickFormatter={fmtShort} />
-            <Tooltip formatter={(v) => [`Rp ${fmt(Number(v))}`, "Penjualan"]} />
+            <Tooltip formatter={(v, name) => [`Rp ${fmt(Number(v))}`, name === "total_penjualan" ? "Omzet" : "Laba Kotor"]} />
+            <Legend formatter={(v) => v === "total_penjualan" ? "Omzet" : "Laba Kotor"} wrapperStyle={{ fontSize: 11 }} />
             <Bar dataKey="total_penjualan" fill="#1f2937" radius={[3,3,0,0]} />
+            <Bar dataKey="laba_kotor" fill="#10b981" radius={[3,3,0,0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

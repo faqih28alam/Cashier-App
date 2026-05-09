@@ -11,9 +11,13 @@ def penjualan_harian(db: Session, tgl_mulai: date, tgl_selesai: date) -> list[di
     rows = (
         db.query(
             func.date(Transaksi.tanggal).label("tanggal"),
-            func.count(Transaksi.id).label("jumlah_transaksi"),
-            func.sum(Transaksi.total).label("total_penjualan"),
+            func.count(func.distinct(Transaksi.id)).label("jumlah_transaksi"),
+            func.sum(TransaksiDetail.total).label("total_penjualan"),
+            func.sum(
+                TransaksiDetail.total - TransaksiDetail.hpp * TransaksiDetail.qty
+            ).label("laba_kotor"),
         )
+        .join(TransaksiDetail, TransaksiDetail.id_transaksi == Transaksi.id)
         .filter(
             Transaksi.status == "paid",
             func.date(Transaksi.tanggal) >= tgl_mulai,
