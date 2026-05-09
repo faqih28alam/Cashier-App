@@ -40,13 +40,13 @@ interface TransaksiItem {
 }
 
 function resolvePrice(b: Barang, qty: number): number {
-  if (b.min_qty_harga_3 > 0 && qty >= b.min_qty_harga_3) return b.harga_3;
-  if (b.min_qty_harga_2 > 0 && qty >= b.min_qty_harga_2) return b.harga_2;
-  return b.harga_1;
+  if (Number(b.min_qty_harga_3) > 0 && qty >= Number(b.min_qty_harga_3)) return Number(b.harga_3);
+  if (Number(b.min_qty_harga_2) > 0 && qty >= Number(b.min_qty_harga_2)) return Number(b.harga_2);
+  return Number(b.harga_1);
 }
 
-function fmt(n: number) {
-  return n.toLocaleString("id-ID");
+function fmt(n: number | string) {
+  return Number(n).toLocaleString("id-ID");
 }
 
 export default function KasirPage() {
@@ -84,7 +84,7 @@ export default function KasirPage() {
       .catch(() => setSearchResults([]));
   }, [debouncedBarcode]);
 
-  const total = items.reduce((s, i) => s + i.total, 0);
+  const total = items.reduce((s, i) => s + Number(i.total), 0);
   const user = getUser();
 
   const addBarang = useCallback((barang: Barang) => {
@@ -98,7 +98,7 @@ export default function KasirPage() {
         return updated;
       }
       const harga = resolvePrice(barang, 1);
-      return [...prev, { barcode: barang.barcode, nama_barang: barang.nama_barang, sat: barang.sat, qty: 1, hpp: barang.hpp, harga, diskon: 0, total: harga }];
+      return [...prev, { barcode: barang.barcode, nama_barang: barang.nama_barang, sat: barang.sat, qty: 1, hpp: Number(barang.hpp), harga, diskon: 0, total: harga }];
     });
   }, []);
 
@@ -183,8 +183,8 @@ export default function KasirPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-800 text-white text-xs sticky top-0">
               <tr>
-                {["NO","NAMA BARANG","SAT","QTY","HARGA","DISKON","TOTAL",""].map((h) => (
-                  <th key={h} className="px-3 py-2 text-left font-medium">{h}</th>
+                {(["NO","NAMA BARANG","SAT","QTY","HARGA","DISKON","TOTAL",""] as const).map((h) => (
+                  <th key={h} className={`px-3 py-2 font-medium ${["HARGA","DISKON","TOTAL"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
                 ))}
               </tr>
             </thead>
