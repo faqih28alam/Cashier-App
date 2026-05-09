@@ -1,7 +1,9 @@
+import os
 import platform
+import shutil
 import subprocess
 from typing import Annotated, List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from dependencies import get_db, get_current_user, require_role
@@ -30,6 +32,29 @@ def get_setting_public(db: Annotated[Session, Depends(get_db)]):
 @router.get("/", response_model=SettingOut)
 def get_setting(db: Annotated[Session, Depends(get_db)], _: Annotated[User, Depends(get_current_user)]):
     return _get_or_create(db)
+
+
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "..", "static", "logo.png")
+
+
+@router.post("/logo")
+async def upload_logo(
+    file: UploadFile = File(...),
+    _: Annotated[User, Depends(require_role("admin", "owner"))] = None,
+):
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(400, "File harus berupa gambar")
+    os.makedirs(os.path.dirname(LOGO_PATH), exist_ok=True)
+    with open(LOGO_PATH, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+    return {"message": "Logo berhasil diupload"}
+
+
+@router.delete("/logo")
+def delete_logo(_: Annotated[User, Depends(require_role("admin", "owner"))]):
+    if os.path.exists(LOGO_PATH):
+        os.remove(LOGO_PATH)
+    return {"message": "Logo dihapus"}
 
 
 @router.get("/printers")

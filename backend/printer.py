@@ -1,6 +1,9 @@
+import os
 from sqlalchemy.orm import Session
 from models.transaksi import Transaksi
 from models.setting import Setting
+
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "static", "logo.png")
 
 
 def print_receipt(db: Session, trx: Transaksi) -> None:
@@ -24,6 +27,10 @@ def print_receipt(db: Session, trx: Transaksi) -> None:
 
     width = setting.printer_width or 80
     cols = 48 if width == 80 else 32
+
+    if os.path.exists(LOGO_PATH):
+        p.set(align="center")
+        p.image(LOGO_PATH)
 
     p.set(align="center", bold=True, double_height=True, double_width=False)
     p.text(f"{setting.nama_toko}\n")

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
+import { getToken } from "@/lib/auth";
 import { toast } from "@/components/shared/Toast";
 
 interface Setting {
@@ -15,7 +16,11 @@ export default function SettingPage() {
   const [loading, setLoading] = useState(false);
   const [printers, setPrinters] = useState<string[]>([]);
   const [scanning, setScanning] = useState(false);
+  const [logoKey, setLogoKey] = useState(Date.now());
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
   useEffect(() => {
     api.get<Setting>("/setting/").then(setForm).catch(() => {});
@@ -38,6 +43,33 @@ export default function SettingPage() {
       toast("Setting disimpan", "success");
     } catch (err) { toast((err as Error).message, "error"); }
     finally { setLoading(false); }
+  }
+
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingLogo(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch(`${apiUrl}/setting/logo`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getToken()}` },
+        body: fd,
+      });
+      if (!res.ok) throw new Error("Upload gagal");
+      setLogoKey(Date.now());
+      toast("Logo berhasil diupload", "success");
+    } catch { toast("Gagal upload logo", "error"); }
+    finally { setUploadingLogo(false); if (fileRef.current) fileRef.current.value = ""; }
+  }
+
+  async function handleLogoDelete() {
+    try {
+      await api.delete("/setting/logo");
+      setLogoKey(Date.now());
+      toast("Logo dihapus", "success");
+    } catch { toast("Gagal menghapus logo", "error"); }
   }
 
   async function handleScanPrinters() {
@@ -68,6 +100,38 @@ export default function SettingPage() {
       <h1 className="text-lg font-bold text-gray-800">Setting</h1>
       <p className="text-xs text-gray-500 mt-0.5 mb-5">Konfigurasi nama toko, koneksi printer termal, dan tampilan struk pelanggan.</p>
       <div className="bg-white rounded-lg border p-5 flex flex-col gap-4">
+
+        {/* Logo Upload */}
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-2">Logo Struk</label>
+          <div className="flex items-center gap-3">
+            <img
+              key={logoKey}
+              src={`${apiUrl}/static/logo.png?t=${logoKey}`}
+              alt="Logo"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              onLoad={(e) => { (e.target as HTMLImageElement).style.display = "block"; }}
+              className="h-16 border rounded p-1 bg-gray-50 object-contain hidden"
+            />
+            <div className="flex gap-2">
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+              <button
+                onClick={() => fileRef.current?.click()}
+                disabled={uploadingLogo}
+                className="px-3 py-2 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 border rounded text-sm text-gray-700"
+              >
+                {uploadingLogo ? "Mengupload..." : "Upload Logo"}
+              </button>
+              <button
+                onClick={handleLogoDelete}
+                className="px-3 py-2 bg-red-50 hover:bg-red-100 border border-red-200 rounded text-sm text-red-600"
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 mt-1">Format PNG/JPG. Disarankan hitam-putih, lebar max 384px.</p>
+        </div>
 
         {/* Printer Port with Scan button */}
         <div ref={dropdownRef} className="relative">

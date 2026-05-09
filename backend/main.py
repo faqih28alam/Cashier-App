@@ -1,5 +1,7 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from routers import auth, kasir, purchas, keuangan, laporan, master, setting, print_receipt
 
@@ -21,6 +23,10 @@ app.include_router(laporan.router,        prefix="/laporan", tags=["Laporan"])
 app.include_router(master.router,         prefix="/master",  tags=["Master"])
 app.include_router(setting.router,        prefix="/setting", tags=["Setting"])
 app.include_router(print_receipt.router,  prefix="/print",   tags=["Print"])
+
+
+os.makedirs("static", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.get("/health")
