@@ -6,12 +6,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 source venv/bin/activate
-uvicorn main:app --reload          # dev server → http://localhost:8000
-alembic revision --autogenerate -m "description"  # new migration
-alembic upgrade head               # apply migrations
+uvicorn main:app --reload             # dev server → http://localhost:8000
+uvicorn main:app --host 0.0.0.0 --reload  # accessible on LAN
+alembic revision --autogenerate -m "description"
+alembic upgrade head
+python seed.py                        # idempotent sample data
+pytest tests/ -v                      # full test suite (50 tests)
+pytest tests/test_kasir.py -v        # single file
 ```
 
 API docs always available at `http://localhost:8000/docs` when server is running.
+
+## Environment
+
+Copy `.env.example` to `.env` before first run. Two variables:
+- `SECRET_KEY` — JWT signing key (64-char random hex recommended)
+- `DATABASE_URL` — defaults to `sqlite:///./cashier.db`; swap for PostgreSQL URL
+
+Both `database.py` and `dependencies.py` call `load_dotenv()` at import time.
 
 ## Architecture
 
@@ -21,25 +33,28 @@ Single FastAPI monolith. All modules share one SQLite database (`cashier.db`).
 
 **DB session:** always injected via `Depends(get_db)` from `dependencies.py`. Never instantiate `SessionLocal` directly in routers.
 
-**Auth:** `Depends(get_current_user)` for any authenticated route. `Depends(require_role("admin", "owner"))` for admin-only routes. Kasir role can only access `/kasir` and read `/master/barang`.
+**Auth:** `Depends(get_current_user)` for any authenticated route. `Depends(require_role("admin", "owner"))` for owner/admin-only routes. Kasir role can only access `/kasir` and read `/master/barang`.
+
+**Public endpoint:** `GET /setting/public` — no auth required, used by login page to show store name.
 
 ## Key Business Logic
 
-**Tiered pricing** (`services/pricing.py`): `resolve_price(barang, qty)` — checks `min_qty_harga_3` first, then `min_qty_harga_2`, falls back to `harga_1`.
+**Tiered pricing** (`services/pricing.py`): `resolve_price(barang, qty)` — checks `min_qty_harga_3` first, then `min_qty_harga_2`, falls back to `harga_1`. Tier disabled when `min_qty` is 0.
 
 **Transaction commit order** (`services/transaksi.py`): must follow this exact sequence within one DB transaction:
-1. Insert `Transaksi` header
-2. Insert `TransaksiDetail` rows
-3. Decrement stock via `services/stok.decrement()`
-4. Post income entry to `keuangan`
-5. `db.commit()`
-6. Print receipt (after commit — printer failure is non-fatal)
-
-Never commit before all 4 steps are done. Never print before commit.
+1. Validate: cart not empty, `bayar >= total`
+2. Insert `Transaksi` header
+3. Insert `TransaksiDetail` rows
+4. Decrement stock via `services/stok.decrement()` — raises HTTP 400 if stock goes negative
+5. Post income entry to `keuangan`
+6. `db.commit()`
+7. Print receipt (after commit — printer failure is non-fatal)
 
 **Transaction number format:** `TRX-YYYYMMDD-NNN` (daily sequence), generated in `services/transaksi._generate_no()`.
 
 **Purchase confirm flow** (`routers/purchas.py`): on `POST /{id}/confirm` — increment stock for each detail row, post kredit entry to keuangan, set status to `confirmed`. Idempotency check: raise 400 if already confirmed.
+
+**Stock guard** (`services/stok.py`): `decrement()` raises HTTP 400 with the item name when stock would go below zero.
 
 ## Models
 
@@ -52,6 +67,12 @@ Core tables: `user`, `barang`, `kategori`, `supplier`, `transaksi`, `transaksi_d
 ## Printer
 
 `printer.py` — called after transaction commit. Reads `Setting` row for port and paper width. Raises `RuntimeError` if port not configured. Caller (`routers/kasir.py`) catches and ignores printer errors — transaction is already saved.
+
+## Tests
+
+`tests/` — 50 tests, all passing. Uses `StaticPool` in `conftest.py` so all operations share one in-memory SQLite connection (required in SQLAlchemy 2.0 — without it, connections after `commit()` get a fresh empty DB).
+
+Helper functions in `conftest.py`: `make_user()`, `make_barang()`, `make_supplier()`, `make_kategori()`, `auth()`.
 
 ## Python Version
 
