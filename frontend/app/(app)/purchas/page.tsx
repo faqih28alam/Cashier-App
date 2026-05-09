@@ -11,6 +11,8 @@ interface DetailItem { barcode: string; nama_barang: string; sat: string; qty: n
 
 function fmt(n: number) { return Number(n).toLocaleString("id-ID"); }
 
+const SATUAN = ["PCS","BTL","KG","GR","LTR","ML","BUNGKUS","SACHET","PAK","RENTENG","LUSIN","DUS","KARTON","SLOP","KODI"];
+
 export default function PurchasPage() {
   const [data, setData] = useState<PembelianRow[]>([]);
   const [showModal, setShowModal] = useState(false);
@@ -94,29 +96,56 @@ export default function PurchasPage() {
           <div className="overflow-x-auto mb-3">
             <table className="w-full text-xs">
               <thead className="bg-gray-100">
-                <tr>{["Barcode","Nama","SAT","QTY","HPP"].map((h) => <th key={h} className="px-2 py-1.5 text-left font-medium">{h}</th>)}</tr>
+                <tr>{["Barcode","Nama","SAT","QTY","HPP (Rp)","Subtotal"].map((h) => <th key={h} className={`px-2 py-1.5 font-medium ${h === "Subtotal" ? "text-right" : "text-left"}`}>{h}</th>)}</tr>
               </thead>
               <tbody className="divide-y">
                 {detail.map((row, i) => (
                   <tr key={i}>
-                    {(["barcode","nama_barang","sat"] as const).map((f) => (
-                      <td key={f} className="px-1 py-1">
-                        <input value={row[f]} onChange={(e) => updateRow(i, f, e.target.value)}
-                          className="w-full border rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300" />
-                      </td>
-                    ))}
-                    {(["qty","hpp"] as const).map((f) => (
-                      <td key={f} className="px-1 py-1 w-24">
-                        <input type="number" value={row[f]} onChange={(e) => updateRow(i, f, Number(e.target.value))}
-                          className="w-full border rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300" />
-                      </td>
-                    ))}
+                    <td className="px-1 py-1">
+                      <input value={row.barcode} onChange={(e) => updateRow(i, "barcode", e.target.value)}
+                        className="w-full border rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300" />
+                    </td>
+                    <td className="px-1 py-1">
+                      <input value={row.nama_barang} onChange={(e) => updateRow(i, "nama_barang", e.target.value)}
+                        className="w-full border rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300" />
+                    </td>
+                    <td className="px-1 py-1 w-28">
+                      <input
+                        list={`satuan-list-${i}`}
+                        value={row.sat}
+                        onChange={(e) => updateRow(i, "sat", e.target.value.toUpperCase())}
+                        className="w-full border rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300"
+                        placeholder="SAT..."
+                      />
+                      <datalist id={`satuan-list-${i}`}>
+                        {SATUAN.map((s) => <option key={s} value={s} />)}
+                      </datalist>
+                    </td>
+                    <td className="px-1 py-1 w-20">
+                      <input type="number" min="0" step="0.001" value={row.qty}
+                        onChange={(e) => updateRow(i, "qty", parseFloat(e.target.value) || 0)}
+                        className="w-full border rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300" />
+                    </td>
+                    <td className="px-1 py-1 w-28">
+                      <input type="number" min="0" step="1" value={row.hpp}
+                        onChange={(e) => updateRow(i, "hpp", Number(e.target.value) || 0)}
+                        className="w-full border rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300"
+                        placeholder="0" />
+                    </td>
+                    <td className="px-2 py-1 text-right text-xs font-medium text-gray-700 whitespace-nowrap">
+                      Rp {fmt(row.qty * row.hpp)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <button onClick={addRow} className="text-xs text-blue-600 hover:underline mb-4">+ Tambah Baris</button>
+          <div className="flex items-center justify-between mt-1 mb-3">
+            <button onClick={addRow} className="text-xs text-blue-600 hover:underline">+ Tambah Baris</button>
+            <span className="text-xs text-gray-500">
+              Total: <span className="font-bold text-gray-800">Rp {fmt(detail.reduce((s, r) => s + r.qty * r.hpp, 0))}</span>
+            </span>
+          </div>
           <div className="flex justify-end gap-2">
             <button onClick={() => setShowModal(false)} className="px-4 py-2 text-sm border rounded hover:bg-gray-50">Batal</button>
             <button onClick={handleSave} className="px-4 py-2 text-sm bg-gray-800 text-white rounded hover:bg-gray-700">Simpan Draft</button>
