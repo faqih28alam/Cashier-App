@@ -54,6 +54,14 @@ Jika pengembang mengirimkan pembaruan:
 *   Sistem membacanya sebagai input keyboard.
 *   Pastikan kursor berada di kolom "Barcode" pada modul **KASIR**.
 
+### 🗑️ Menghapus Aplikasi (Uninstall)
+
+1.  Jika aplikasi sedang berjalan, tutup terlebih dahulu dengan menutup jendela **`start.bat`**.
+2.  Hapus seluruh folder aplikasi (contoh: `C:\Aplikasi_Kasir`).
+3.  Selesai — tidak ada file sistem atau registry yang perlu dihapus.
+
+> **Catatan:** Python, Node.js, dan Git tidak ikut terhapus karena mungkin digunakan oleh aplikasi lain. Hapus secara manual melalui *Settings → Apps* jika tidak diperlukan lagi.
+
 ---
 
 ## 🇺🇸 ENGLISH VERSION
@@ -105,6 +113,14 @@ When the developer sends an update:
 *   Plug in your USB Barcode Scanner.
 *   The system treats it as keyboard input.
 *   Ensure the cursor is in the "Barcode" field in the **KASIR** module.
+
+### 🗑️ Uninstalling the App
+
+1.  If the app is running, close it first by closing the **`start.bat`** window.
+2.  Delete the entire app folder (e.g., `C:\Cashier_App`).
+3.  Done — no system files or registry entries need to be removed.
+
+> **Note:** Python, Node.js, and Git are not removed as they may be used by other applications. Uninstall them manually via *Settings → Apps* if no longer needed.
 
 ---
 *Developed for Renal - 2026*
