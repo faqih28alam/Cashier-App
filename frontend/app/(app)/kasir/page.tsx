@@ -162,9 +162,9 @@ export default function KasirPage() {
       setReceipt({
         id: res.id,
         noTransaksi: res.no_transaksi,
-        tanggal: new Date(res.tanggal).toLocaleString("id-ID"),
-        bayar: res.bayar,
-        kembalian: res.kembalian,
+        tanggal: new Date(res.tanggal).toLocaleString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }),
+        bayar: Number(res.bayar),
+        kembalian: Number(res.kembalian),
         items: snapshot,
         total: snapshotTotal,
       });
