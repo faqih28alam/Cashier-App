@@ -22,7 +22,7 @@ def print_receipt(db: Session, trx: Transaksi) -> None:
             p = Usb(0x2AAF, 0x6020)
         else:
             p = Win32Raw(port)  # Windows printer name, e.g. "XH-58PRO"
-    except exceptions.DeviceNotFoundUnusableError as e:
+    except Exception as e:
         raise RuntimeError(str(e))
 
     width = setting.printer_width or 80
