@@ -48,6 +48,14 @@ def client(db):
     return TestClient(app)
 
 
+@pytest.fixture(autouse=True)
+def disable_rate_limit():
+    from main import app as _app
+    _app.state.limiter._enabled = False
+    yield
+    _app.state.limiter._enabled = True
+
+
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 def make_user(db, username: str, role: str = "kasir", password: str = "pass123") -> User:
