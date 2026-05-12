@@ -17,17 +17,19 @@ export default function SettingPage() {
   const [loading, setLoading] = useState(false);
   const [printers, setPrinters] = useState<string[]>([]);
   const [scanning, setScanning] = useState(false);
-  const [logoKey, setLogoKey] = useState(Date.now());
+  const [logoKey, setLogoKey] = useState(0);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
   const [clearPassword, setClearPassword] = useState("");
   const [clearing, setClearing] = useState(false);
+  const [user, setUser] = useState<ReturnType<typeof getUser>>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-  const user = getUser();
 
   useEffect(() => {
+    setLogoKey(Date.now());
+    setUser(getUser());
     api.get<Setting>("/setting/").then(setForm).catch(() => {});
   }, []);
 
