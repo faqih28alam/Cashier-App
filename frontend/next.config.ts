@@ -1,9 +1,19 @@
 import type { NextConfig } from "next";
+import os from "os";
+
+function getLanIPs(): string[] {
+  const ips: string[] = [];
+  for (const iface of Object.values(os.networkInterfaces())) {
+    for (const alias of iface ?? []) {
+      if (alias.family === "IPv4" && !alias.internal) ips.push(alias.address);
+    }
+  }
+  return ips;
+}
 
 const nextConfig: NextConfig = {
-  // Allow LAN access from phone/tablet in dev mode (npm run dev)
-  // Not needed in production (npm run start)
-  allowedDevOrigins: ["192.168.0.0/16", "10.0.0.0/8", "172.16.0.0/12"],
+  // Allow LAN devices (phone, tablet) to access the dev server
+  allowedDevOrigins: getLanIPs(),
 };
 
 export default nextConfig;
