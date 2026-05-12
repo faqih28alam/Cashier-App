@@ -29,8 +29,14 @@ def print_receipt(db: Session, trx: Transaksi) -> None:
     cols = 48 if width == 80 else 32
 
     if os.path.exists(LOGO_PATH):
+        from PIL import Image
+        max_px = 360 if width == 58 else 512
+        logo = Image.open(LOGO_PATH)
+        if logo.width > max_px:
+            ratio = max_px / logo.width
+            logo = logo.resize((max_px, int(logo.height * ratio)), Image.LANCZOS)
         p.set(align="center")
-        p.image(LOGO_PATH)
+        p.image(logo)
 
     p.set(align="center", bold=True, double_height=True, double_width=False)
     p.text(f"{setting.nama_toko}\n")
@@ -66,3 +72,4 @@ def print_receipt(db: Session, trx: Transaksi) -> None:
     p.text(f"{setting.receipt_footer or 'Terima Kasih!'}\n")
     p.text("\n\n\n")
     p.cut()
+    p.close()
