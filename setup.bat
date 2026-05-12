@@ -24,6 +24,12 @@ if %errorlevel% neq 0 (
 echo Requirements met.
 echo.
 
+:: Detect local IP address (skip loopback and link-local)
+for /f %%i in ('powershell -nologo -command "(Get-NetIPAddress -AddressFamily IPv4 -Type Unicast | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' } | Select-Object -First 1).IPAddress"') do set LOCAL_IP=%%i
+if "%LOCAL_IP%"=="" set LOCAL_IP=localhost
+echo Detected local IP: %LOCAL_IP%
+echo.
+
 :: 2. Setup Backend
 echo [2/4] Setting up Backend...
 cd backend
@@ -60,10 +66,8 @@ cd frontend
 echo Installing frontend dependencies...
 call npm install
 
-if not exist .env.local (
-    echo Creating .env.local...
-    echo NEXT_PUBLIC_API_URL=http://localhost:8000> .env.local
-)
+echo Writing .env.local with local IP...
+echo NEXT_PUBLIC_API_URL=http://%LOCAL_IP%:8000>.env.local
 
 echo Building frontend (this may take a minute)...
 call npm run build
@@ -77,7 +81,10 @@ echo [4/4] Finalizing...
 echo ==========================================
 echo   SETUP COMPLETE!
 echo.
-echo   You can now start the application by 
-echo   running "start.bat"
+echo   Run "start.bat" to launch the app.
+echo.
+echo   Access from this PC:   http://localhost:3000
+echo   Access from phone/PC:  http://%LOCAL_IP%:3000
+echo   (phone must be on the same Wi-Fi)
 echo ==========================================
 pause
