@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Boolean, Column, Integer, String
 from database import Base
 
 
@@ -13,3 +13,4 @@ class Setting(Base):
     printer_width   = Column(Integer, default=80) # 58 or 80 mm
     receipt_footer  = Column(String(255), default="Terima Kasih!")
     tax_rate        = Column(Integer, default=0)  # percentage, 0 = no tax
+    auto_print      = Column(Boolean, default=True)

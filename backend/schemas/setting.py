@@ -10,6 +10,7 @@ class SettingUpdate(BaseModel):
     printer_width: Optional[int] = None
     receipt_footer: Optional[str] = None
     tax_rate: Optional[int] = None
+    auto_print: Optional[bool] = None
 
 
 class SettingOut(SettingUpdate):

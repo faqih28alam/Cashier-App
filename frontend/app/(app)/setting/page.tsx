@@ -7,9 +7,10 @@ import { toast } from "@/components/shared/Toast";
 interface Setting {
   id?: number; nama_toko: string; alamat: string; telepon: string;
   printer_port: string; printer_width: number; receipt_footer: string; tax_rate: number;
+  auto_print: boolean;
 }
 
-const EMPTY: Setting = { nama_toko: "", alamat: "", telepon: "", printer_port: "", printer_width: 80, receipt_footer: "Terima Kasih!", tax_rate: 0 };
+const EMPTY: Setting = { nama_toko: "", alamat: "", telepon: "", printer_port: "", printer_width: 80, receipt_footer: "Terima Kasih!", tax_rate: 0, auto_print: true };
 
 export default function SettingPage() {
   const [form, setForm] = useState<Setting>(EMPTY);
@@ -180,6 +181,21 @@ export default function SettingPage() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Auto Print toggle */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-gray-600">Cetak Otomatis</p>
+            <p className="text-xs text-gray-400">Struk dicetak langsung setelah bayar</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setForm({ ...form, auto_print: !form.auto_print })}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.auto_print ? "bg-gray-800" : "bg-gray-300"}`}
+          >
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${form.auto_print ? "translate-x-6" : "translate-x-1"}`} />
+          </button>
         </div>
 
         {otherFields.map(([key, label, type]) => (

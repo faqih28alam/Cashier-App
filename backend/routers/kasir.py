@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from dependencies import get_db, get_current_user
+from models.setting import Setting
 from models.user import User
 from models.transaksi import Transaksi
 from schemas.transaksi import TransaksiCreate, TransaksiOut
@@ -19,10 +20,12 @@ def buat_transaksi(
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     trx = transaksi_service.create(db, payload, current_user.id)
-    try:
-        print_receipt(db, trx)
-    except Exception:
-        pass  # transaction is saved; printer failure is non-fatal
+    setting = db.get(Setting, 1)
+    if setting is None or setting.auto_print is not False:
+        try:
+            print_receipt(db, trx)
+        except Exception:
+            pass  # transaction is saved; printer failure is non-fatal
     return trx
 
 
