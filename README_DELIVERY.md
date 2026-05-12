@@ -31,6 +31,29 @@ Sebelum menjalankan aplikasi, pastikan Anda telah menginstal hal-hal berikut:
 1.  Untuk memulai aplikasi, klik dua kali pada file **`start.bat`**.
 2.  Skrip akan memulai layanan backend dan frontend.
 3.  Setelah beberapa detik, browser web Anda akan otomatis terbuka ke alamat `http://localhost:3000`.
+4.  Di jendela `start.bat` Anda akan melihat dua alamat:
+    ```
+    Access from this PC:   http://localhost:3000
+    Access from phone/PC:  http://192.168.x.x:3000
+    ```
+    Alamat kedua digunakan untuk akses dari perangkat lain (lihat bagian berikut).
+
+### 📱 Akses dari Ponsel / Perangkat Lain
+
+Aplikasi dapat dibuka dari ponsel, tablet, atau laptop lain selama terhubung ke **Wi-Fi yang sama** dengan komputer kasir.
+
+1.  Pastikan komputer kasir dan ponsel terhubung ke jaringan Wi-Fi yang sama.
+2.  Jalankan **`start.bat`** di komputer kasir.
+3.  Perhatikan alamat yang tampil di jendela, contoh:
+    ```
+    Access from phone/PC:  http://192.168.1.5:3000
+    ```
+4.  Buka browser di ponsel dan ketik alamat tersebut.
+5.  Aplikasi akan terbuka di ponsel — tampilan sudah dioptimalkan untuk layar kecil.
+
+> **Catatan:** Alamat IP (`192.168.x.x`) dapat berubah jika router memberikan IP baru ke komputer.
+> Jika akses dari ponsel tiba-tiba tidak bisa, jalankan kembali **`setup.bat`** lalu **`start.bat`**.
+> `start.bat` akan memberikan peringatan otomatis jika IP berubah.
 
 ### 🔄 Memperbarui Aplikasi
 
@@ -91,6 +114,29 @@ Before running the application, make sure you have the following installed:
 1.  To start the application, double-click **`start.bat`**.
 2.  The script will start the backend and frontend services.
 3.  After a few seconds, your default web browser will automatically open to `http://localhost:3000`.
+4.  The `start.bat` window will show two addresses:
+    ```
+    Access from this PC:   http://localhost:3000
+    Access from phone/PC:  http://192.168.x.x:3000
+    ```
+    The second address is used to access the app from other devices (see below).
+
+### 📱 Access from Phone / Other Devices
+
+The app can be opened from a phone, tablet, or another laptop as long as it is connected to the **same Wi-Fi** as the cashier PC.
+
+1.  Make sure the cashier PC and the phone are on the same Wi-Fi network.
+2.  Run **`start.bat`** on the cashier PC.
+3.  Note the address shown in the window, for example:
+    ```
+    Access from phone/PC:  http://192.168.1.5:3000
+    ```
+4.  Open a browser on the phone and type that address.
+5.  The app will open on the phone — the layout is optimized for small screens.
+
+> **Note:** The IP address (`192.168.x.x`) may change if the router assigns a new IP to the PC.
+> If phone access suddenly stops working, re-run **`setup.bat`** and then **`start.bat`**.
+> `start.bat` will automatically warn you if the IP has changed.
 
 ### 🔄 Updating the App
 
