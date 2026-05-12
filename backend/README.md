@@ -32,8 +32,11 @@ uvicorn main:app --reload        # starts on http://localhost:8000
 ## Commands
 
 ```bash
-# Run dev server
+# Run dev server (localhost only)
 uvicorn main:app --reload
+
+# Run dev server (accessible from phone/tablet on same Wi-Fi)
+uvicorn main:app --host 0.0.0.0 --reload
 
 # Create a new migration after model changes
 alembic revision --autogenerate -m "description"
@@ -44,6 +47,10 @@ alembic upgrade head
 # Rollback one step
 alembic downgrade -1
 ```
+
+## CORS
+
+`main.py` uses `allow_origin_regex` to accept requests from any private LAN origin (`192.168.x.x`, `10.x.x.x`, `172.16–31.x.x`) as well as localhost. This allows phones and tablets on the same Wi-Fi to use the app without hardcoding IPs.
 
 ## Project Structure
 

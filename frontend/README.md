@@ -25,14 +25,17 @@ npm run dev                         # starts on http://localhost:3000
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
+For phone/tablet access on the same Wi-Fi, change `localhost` to the PC's LAN IP (e.g. `http://192.168.1.5:8000`). This value is baked in at build time — changing it requires restarting the dev server or rebuilding for production.
+
 > Backend must be running on port 8000 before using the app.
 
 ## Commands
 
 ```bash
-npm run dev      # development server with hot reload
-npm run build    # production build + type check
-npm run start    # serve production build
+npm run dev                        # development server with hot reload (localhost)
+npm run dev -- --hostname 0.0.0.0  # accessible from phone/tablet on same Wi-Fi
+npm run build                      # production build + type check
+npm run start                      # serve production build
 ```
 
 ## Project Structure
@@ -82,3 +85,11 @@ frontend/
 ## Barcode Scanner
 
 The scanner works in USB HID mode — it sends keystrokes directly into the browser. The `/kasir` page keeps the barcode input auto-focused at all times. No driver or extra configuration needed.
+
+## Responsive Design
+
+All pages (`laporan`, `penjualan`, `purchas`, `keuangan`, `master`) are mobile-responsive. The navbar collapses to a hamburger menu below the `md` breakpoint. DataTable columns use Tailwind's `hidden sm:table-cell` / `hidden md:table-cell` classes to hide lower-priority columns on small screens.
+
+## PDF Export
+
+`laporan`, `penjualan`, and `purchas` pages include an Export PDF button. Uses `jspdf` + `jspdf-autotable`, imported dynamically to avoid increasing the initial bundle size.
