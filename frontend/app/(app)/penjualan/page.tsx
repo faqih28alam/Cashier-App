@@ -30,13 +30,13 @@ function StatCard({ title, value, sub, icon: Icon, color }: {
 }) {
   return (
     <div className="bg-white rounded-lg border p-4 flex items-start justify-between">
-      <div>
+      <div className="min-w-0 flex-1">
         <p className="text-xs text-gray-500 mb-1">{title}</p>
-        <p className="text-xl font-bold text-gray-800">{value}</p>
+        <p className="text-base sm:text-xl font-bold text-gray-800 truncate">{value}</p>
         {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
       </div>
-      <div className={`p-2 rounded-lg ${color}`}>
-        <Icon size={18} className="text-white" />
+      <div className={`p-2 rounded-lg ml-2 flex-shrink-0 ${color}`}>
+        <Icon size={16} className="text-white" />
       </div>
     </div>
   );
@@ -165,24 +165,24 @@ export default function PenjualanPage() {
 
   const columns = [
     { key: "tanggal",      label: "Tanggal",        render: (r: Row) => r.tanggal },
-    { key: "no_transaksi", label: "No. Transaksi",   className: "font-mono text-xs" },
+    { key: "no_transaksi", label: "No. Transaksi",   className: "font-mono text-xs hidden sm:table-cell" },
     { key: "nama_barang",  label: "Nama Barang",     className: "font-medium" },
-    { key: "sat",          label: "SAT",             className: "text-gray-500" },
+    { key: "sat",          label: "SAT",             className: "text-gray-500 hidden sm:table-cell" },
     { key: "qty",          label: "QTY",             render: (r: Row) => (
       <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold text-xs">
         {Number(r.qty) % 1 === 0 ? r.qty : Number(r.qty).toFixed(3).replace(/\.?0+$/, "")}
       </span>
     )},
-    { key: "hpp",          label: "HPP",             render: (r: Row) => <span className="text-gray-500">{fmt(Number(r.hpp))}</span> },
-    { key: "harga",        label: "Harga Jual",      render: (r: Row) => fmt(Number(r.harga)) },
-    { key: "diskon",       label: "Diskon",          render: (r: Row) => Number(r.diskon) > 0 ? <span className="text-orange-600">-{fmt(Number(r.diskon))}</span> : <span className="text-gray-300">-</span> },
-    { key: "total",        label: "Total Omzet",     render: (r: Row) => <span className="font-semibold">{fmt(Number(r.total))}</span> },
-    { key: "laba_kotor",   label: "Laba Kotor",      render: (r: Row) => <span className="text-emerald-700 font-semibold">{fmt(Number(r.laba_kotor))}</span> },
+    { key: "hpp",          label: "HPP",             className: "hidden lg:table-cell", render: (r: Row) => <span className="text-gray-500">{fmt(Number(r.hpp))}</span> },
+    { key: "harga",        label: "Harga Jual",      className: "hidden sm:table-cell", render: (r: Row) => fmt(Number(r.harga)) },
+    { key: "diskon",       label: "Diskon",          className: "hidden lg:table-cell", render: (r: Row) => Number(r.diskon) > 0 ? <span className="text-orange-600">-{fmt(Number(r.diskon))}</span> : <span className="text-gray-300">-</span> },
+    { key: "total",        label: "Total",           render: (r: Row) => <span className="font-semibold">{fmt(Number(r.total))}</span> },
+    { key: "laba_kotor",   label: "Laba Kotor",      className: "hidden md:table-cell", render: (r: Row) => <span className="text-emerald-700 font-semibold">{fmt(Number(r.laba_kotor))}</span> },
   ];
 
   return (
     <div className="p-5 space-y-5">
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between flex-wrap gap-2">
         <div>
           <h1 className="text-lg font-bold text-gray-800">Penjualan</h1>
           <p className="text-xs text-gray-500 mt-0.5">Detail produk terjual per transaksi — qty, HPP, omzet, dan laba kotor.</p>

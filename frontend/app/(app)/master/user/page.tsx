@@ -88,12 +88,12 @@ export default function UserPage() {
 
   return (
     <div className="p-5">
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between flex-wrap gap-2 mb-4">
         <div>
           <h1 className="text-lg font-bold text-gray-800">Manajemen Pengguna</h1>
           <p className="text-xs text-gray-500 mt-0.5">Kelola akun kasir dan admin — atur peran, status aktif, dan kata sandi.</p>
         </div>
-        <button onClick={openCreate} className="flex items-center gap-1 bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-sm">
+        <button onClick={openCreate} className="flex items-center gap-1 bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-sm flex-shrink-0">
           <Plus size={14} /> Tambah Akun
         </button>
       </div>
@@ -101,7 +101,7 @@ export default function UserPage() {
       <DataTable
         columns={[
           { key: "username", label: "Username", className: "font-mono font-medium" },
-          { key: "nama",     label: "Nama Lengkap", className: "font-medium" },
+          { key: "nama",     label: "Nama Lengkap", className: "font-medium hidden sm:table-cell" },
           { key: "role",     label: "Peran", render: (r: UserRow) => (
             <span className={`text-xs px-2 py-0.5 rounded font-medium ${ROLE_COLOR[r.role]}`}>
               {ROLE_LABEL[r.role]}

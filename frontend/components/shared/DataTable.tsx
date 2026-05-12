@@ -17,11 +17,11 @@ interface Props<T> {
 export function DataTable<T>({ columns, data, keyField, emptyMessage = "Tidak ada data" }: Props<T>) {
   return (
     <div className="overflow-x-auto rounded border border-gray-200">
-      <table className="w-full text-sm">
+      <table className="min-w-full text-xs sm:text-sm">
         <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
           <tr>
             {columns.map((col) => (
-              <th key={String(col.key)} className={`px-3 py-2 text-left font-medium ${col.className ?? ""}`}>
+              <th key={String(col.key)} className={`px-2 sm:px-3 py-2 text-left font-medium ${col.className ?? ""}`}>
                 {col.label}
               </th>
             ))}
@@ -38,7 +38,7 @@ export function DataTable<T>({ columns, data, keyField, emptyMessage = "Tidak ad
             data.map((row) => (
               <tr key={String(row[keyField])} className="hover:bg-gray-50">
                 {columns.map((col) => (
-                  <td key={String(col.key)} className={`px-3 py-2 ${col.className ?? ""}`}>
+                  <td key={String(col.key)} className={`px-2 sm:px-3 py-2 ${col.className ?? ""}`}>
                     {col.render ? col.render(row) : String((row as Record<string, unknown>)[String(col.key)] ?? "")}
                   </td>
                 ))}

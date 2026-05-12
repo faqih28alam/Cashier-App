@@ -26,13 +26,13 @@ function StatCard({ title, value, sub, icon: Icon, color }: {
 }) {
   return (
     <div className="bg-white rounded-lg border p-4 flex items-start justify-between">
-      <div>
+      <div className="min-w-0 flex-1">
         <p className="text-xs text-gray-500 mb-1">{title}</p>
-        <p className="text-2xl font-bold text-gray-800">{value}</p>
+        <p className="text-base sm:text-2xl font-bold text-gray-800 truncate">{value}</p>
         <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
       </div>
-      <div className={`p-2 rounded-lg ${color}`}>
-        <Icon size={18} className="text-white" />
+      <div className={`p-2 rounded-lg ml-2 flex-shrink-0 ${color}`}>
+        <Icon size={16} className="text-white" />
       </div>
     </div>
   );
@@ -195,7 +195,7 @@ export default function LaporanPage() {
 
   return (
     <div className="p-5 space-y-5">
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between flex-wrap gap-2">
         <div>
           <h1 className="text-lg font-bold text-gray-800">Laporan Penjualan</h1>
           <p className="text-xs text-gray-500 mt-0.5">Ringkasan pendapatan dan performa toko.</p>
@@ -252,18 +252,17 @@ export default function LaporanPage() {
       {/* Custom date range */}
       <div className="bg-white rounded-lg border p-4">
         <p className="text-sm font-semibold text-gray-700 mb-3">Penjualan Harian (Kustom)</p>
-        <div className="flex items-center gap-3 flex-wrap mb-4">
+        <div className="flex items-center gap-3 flex-wrap mb-3">
           <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="border rounded px-2 py-1 text-sm" />
           <span className="text-gray-400">s/d</span>
           <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="border rounded px-2 py-1 text-sm" />
           <button onClick={loadCustom} className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-1.5 rounded text-sm">Tampilkan</button>
-          <span className="ml-auto text-sm text-gray-500 flex items-center gap-3 flex-wrap">
-            {customTrx} transaksi &nbsp;|&nbsp;
-            Omzet: <span className="font-bold text-gray-800">Rp {fmt(customRevenue)}</span>
-            &nbsp;|&nbsp;
-            Laba: <span className="font-bold text-emerald-700">Rp {fmt(customLaba)}</span>
-            {customRevenue > 0 && <span className="text-xs text-gray-400">({((customLaba / customRevenue) * 100).toFixed(1)}%)</span>}
-          </span>
+        </div>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 mb-4">
+          <span>{customTrx} transaksi</span>
+          <span>Omzet: <span className="font-bold text-gray-800">Rp {fmt(customRevenue)}</span></span>
+          <span>Laba: <span className="font-bold text-emerald-700">Rp {fmt(customLaba)}</span></span>
+          {customRevenue > 0 && <span className="text-xs text-gray-400">({((customLaba / customRevenue) * 100).toFixed(1)}%)</span>}
         </div>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={custom.map((r) => ({ ...r, total_penjualan: Number(r.total_penjualan), laba_kotor: Number(r.laba_kotor), label: fmtDate(r.tanggal) }))}>

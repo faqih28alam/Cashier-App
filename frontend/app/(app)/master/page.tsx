@@ -60,11 +60,11 @@ export default function MasterPage() {
   }
 
   const columns = [
-    { key: "barcode", label: "Barcode" },
+    { key: "barcode", label: "Barcode", className: "hidden sm:table-cell" },
     { key: "nama_barang", label: "Nama Barang", className: "font-medium" },
-    { key: "sat", label: "SAT" },
-    { key: "hpp", label: "HPP", render: (r: Barang) => fmt(r.hpp) },
-    { key: "harga_1", label: "Harga 1", render: (r: Barang) => fmt(r.harga_1) },
+    { key: "sat", label: "SAT", className: "hidden sm:table-cell" },
+    { key: "hpp", label: "HPP", className: "hidden lg:table-cell", render: (r: Barang) => fmt(r.hpp) },
+    { key: "harga_1", label: "Harga 1", className: "hidden md:table-cell", render: (r: Barang) => fmt(r.harga_1) },
     { key: "stok", label: "Stok", render: (r: Barang) => <span className={r.stok <= r.stok_minimum ? "text-red-600 font-bold" : ""}>{r.stok}</span> },
     { key: "actions", label: "", render: (r: Barang) => (
       <div className="flex gap-1">
@@ -102,25 +102,25 @@ export default function MasterPage() {
 
   return (
     <div className="p-5">
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between flex-wrap gap-2 mb-4">
         <div>
           <h1 className="text-lg font-bold text-gray-800">Master Barang</h1>
           <p className="text-xs text-gray-500 mt-0.5">Kelola data produk: barcode, harga jual bertingkat (grosir), HPP, dan stok minimum.</p>
         </div>
-        <button onClick={openCreate} className="flex items-center gap-1 bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-sm">
+        <button onClick={openCreate} className="flex items-center gap-1 bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-sm flex-shrink-0">
           <Plus size={14} /> Tambah
         </button>
       </div>
       <div className="flex items-center gap-2 mb-4">
-        <Search size={16} className="text-gray-400" />
+        <Search size={16} className="text-gray-400 flex-shrink-0" />
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari nama / barcode..."
-          className="border rounded px-3 py-1.5 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-gray-300" />
+          className="border rounded px-3 py-1.5 text-sm w-full sm:w-72 focus:outline-none focus:ring-2 focus:ring-gray-300" />
       </div>
       <DataTable columns={columns} data={data} keyField="barcode" />
 
       {showModal && (
         <Modal title={editBarcode ? "Edit Barang" : "Tambah Barang"} onClose={() => setShowModal(false)} width="max-w-2xl">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {F("barcode", "Barcode")}
             {F("nama_barang", "Nama Barang")}
             {F("sat", "Satuan")}

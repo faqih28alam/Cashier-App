@@ -150,12 +150,12 @@ export default function PurchasPage() {
 
   return (
     <div className="p-5 space-y-4">
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between flex-wrap gap-2">
         <div>
           <h1 className="text-lg font-bold text-gray-800">Pembelian</h1>
           <p className="text-xs text-gray-500 mt-0.5">Catat pembelian barang dari supplier. Konfirmasi untuk memperbarui stok gudang.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={handleExportPDF}
             disabled={exporting || data.length === 0}

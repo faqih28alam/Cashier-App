@@ -43,21 +43,23 @@ export default function KeuanganPage() {
 
   return (
     <div className="p-5 space-y-4">
-      <div>
-        <h1 className="text-lg font-bold text-gray-800">Keuangan</h1>
-        <p className="text-xs text-gray-500 mt-0.5 mb-3">Buku kas toko — tercatat otomatis dari penjualan dan pembelian. Tambah entri manual untuk biaya operasional.</p>
+      <div className="flex items-start justify-between flex-wrap gap-2">
+        <div>
+          <h1 className="text-lg font-bold text-gray-800">Keuangan</h1>
+          <p className="text-xs text-gray-500 mt-0.5">Buku kas toko — tercatat otomatis dari penjualan dan pembelian. Tambah entri manual untuk biaya operasional.</p>
+        </div>
+        <button onClick={() => setShowModal(true)} className="flex items-center gap-1 bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-sm flex-shrink-0">
+          <Plus size={14} /> Entri Manual
+        </button>
       </div>
       <div className="flex items-center gap-3 flex-wrap">
         <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="border rounded px-2 py-1 text-sm" />
         <span className="text-gray-400">s/d</span>
         <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="border rounded px-2 py-1 text-sm" />
         <button onClick={load} className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-1.5 rounded text-sm">Tampilkan</button>
-        <button onClick={() => setShowModal(true)} className="ml-auto flex items-center gap-1 bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-sm">
-          <Plus size={14} /> Entri Manual
-        </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[["Total Masuk (Debit)", totalDebit, "text-green-600"], ["Total Keluar (Kredit)", totalKredit, "text-red-600"], ["Saldo", totalDebit - totalKredit, "text-gray-800"]].map(([label, val, cls]) => (
           <div key={String(label)} className="bg-white rounded-lg border p-4">
             <p className="text-xs text-gray-500">{String(label)}</p>
@@ -70,7 +72,7 @@ export default function KeuanganPage() {
         columns={[
           { key: "tanggal", label: "Tanggal", render: (r: KeuanganRow) => new Date(r.tanggal).toLocaleDateString("id-ID") },
           { key: "keterangan", label: "Keterangan", className: "font-medium" },
-          { key: "ref_type", label: "Tipe", render: (r: KeuanganRow) => <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{r.ref_type ?? "-"}</span> },
+          { key: "ref_type", label: "Tipe", className: "hidden sm:table-cell", render: (r: KeuanganRow) => <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{r.ref_type ?? "-"}</span> },
           { key: "debit", label: "Debit", render: (r: KeuanganRow) => r.debit > 0 ? <span className="text-green-600">+{fmt(r.debit)}</span> : "-" },
           { key: "kredit", label: "Kredit", render: (r: KeuanganRow) => r.kredit > 0 ? <span className="text-red-600">-{fmt(r.kredit)}</span> : "-" },
         ]}
