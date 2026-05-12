@@ -37,6 +37,8 @@ Single FastAPI monolith. All modules share one SQLite database (`cashier.db`).
 
 **Public endpoint:** `GET /setting/public` — no auth required, used by login page to show store name.
 
+**CORS:** `main.py` uses `allow_origin_regex` to accept any private LAN origin (`192.168.x.x`, `10.x.x.x`, `172.16-31.x.x`) plus localhost, on any port. This allows phone/tablet access on the same Wi-Fi without hardcoding IPs. Do not replace with a fixed `allow_origins` list.
+
 ## Key Business Logic
 
 **Tiered pricing** (`services/pricing.py`): `resolve_price(barang, qty)` — checks `min_qty_harga_3` first, then `min_qty_harga_2`, falls back to `harga_1`. Tier disabled when `min_qty` is 0.
