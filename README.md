@@ -123,7 +123,8 @@ cashier-app/
 │   │   ├── test_laporan.py
 │   │   └── test_services.py
 │   │
-│   ├── printer.py                        # python-escpos — builds + sends ESC/POS receipt
+│   ├── printer.py                        # python-escpos — builds + sends ESC/POS receipt; auto-resizes logo; calls p.close() to finalize Win32 print job
+│   ├── static/                           # uploaded assets (logo.png) — gitignored
 │   ├── seed.py                           # idempotent seed data (run once after setup)
 │   ├── alembic/                          # DB migrations
 │   ├── alembic.ini

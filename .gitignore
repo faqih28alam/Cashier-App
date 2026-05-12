@@ -21,6 +21,9 @@ env/
 *.sqlite
 *.sqlite3
 
+# Uploaded assets (client-specific, not versioned)
+backend/static/
+
 # Alembic (keep structure, ignore generated)
 backend/alembic/versions/*.pyc
 
