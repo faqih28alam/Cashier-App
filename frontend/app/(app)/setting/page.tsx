@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import QRCode from "react-qr-code";
 import { api } from "@/lib/api";
 import { getToken, getUser } from "@/lib/auth";
 import { toast } from "@/components/shared/Toast";
@@ -26,6 +27,8 @@ export default function SettingPage() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+  const frontendUrl = apiUrl.replace(/:\d+$/, ":3000");
+  const isLan = !apiUrl.includes("localhost") && !apiUrl.includes("127.0.0.1");
 
   useEffect(() => {
     setLogoKey(Date.now());
@@ -214,6 +217,29 @@ export default function SettingPage() {
           {loading ? "Menyimpan..." : "Simpan Setting"}
         </button>
       </div>
+      {/* Akses dari Ponsel */}
+      <div className="bg-white rounded-lg border p-5 mt-5">
+        <h2 className="text-sm font-bold text-gray-800 mb-1">Akses dari Ponsel</h2>
+        <p className="text-xs text-gray-500 mb-4">
+          Scan QR code ini dengan kamera ponsel untuk membuka aplikasi — tidak perlu ketik apapun.
+        </p>
+        {isLan ? (
+          <div className="flex flex-col items-center gap-3">
+            <div className="bg-white p-3 border rounded inline-block">
+              <QRCode value={frontendUrl} size={180} />
+            </div>
+            <p className="text-xs text-gray-500 font-mono bg-gray-50 border rounded px-3 py-1.5">{frontendUrl}</p>
+            <p className="text-xs text-gray-400">Ponsel harus terhubung ke WiFi yang sama dengan komputer ini.</p>
+          </div>
+        ) : (
+          <div className="bg-amber-50 border border-amber-200 rounded p-3 text-amber-800 text-xs">
+            Backend berjalan di <strong>localhost</strong> — belum bisa diakses dari ponsel.
+            Jalankan backend dengan <code className="bg-amber-100 px-1 rounded">--host 0.0.0.0</code> dan
+            set <code className="bg-amber-100 px-1 rounded">NEXT_PUBLIC_API_URL</code> ke IP lokal komputer di <code className="bg-amber-100 px-1 rounded">frontend/.env.local</code>.
+          </div>
+        )}
+      </div>
+
       {/* Danger Zone — owner only */}
       {user?.role === "owner" && (
         <div className="bg-white rounded-lg border border-red-200 p-5 mt-5">
