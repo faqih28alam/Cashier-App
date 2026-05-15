@@ -17,7 +17,7 @@ Next.js frontend for the Cashier App POS system. Runs on `http://localhost:3000`
 ```bash
 npm install
 cp .env.local.example .env.local   # or create manually (see below)
-npm run dev                         # starts on http://localhost:3000
+npm run dev -- --hostname 0.0.0.0   # binds to all interfaces; access via localhost:3000 or <lan-ip>:3000
 ```
 
 **.env.local**
@@ -32,8 +32,7 @@ For phone/tablet access on the same Wi-Fi, change `localhost` to the PC's LAN IP
 ## Commands
 
 ```bash
-npm run dev                        # development server with hot reload (localhost)
-npm run dev -- --hostname 0.0.0.0  # accessible from phone/tablet on same Wi-Fi
+npm run dev -- --hostname 0.0.0.0  # binds to all interfaces; access via localhost:3000 or <lan-ip>:3000
 npm run build                      # production build + type check
 npm run start                      # serve production build
 ```

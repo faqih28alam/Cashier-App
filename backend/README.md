@@ -18,8 +18,8 @@ FastAPI backend for the Cashier App POS system. Runs locally on `http://localhos
 python3 -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-alembic upgrade head             # creates cashier.db with all tables
-uvicorn main:app --reload        # starts on http://localhost:8000
+alembic upgrade head                          # creates cashier.db with all tables
+uvicorn main:app --host 0.0.0.0 --reload     # starts on http://0.0.0.0:8000
 ```
 
 ## API Docs
@@ -32,10 +32,7 @@ uvicorn main:app --reload        # starts on http://localhost:8000
 ## Commands
 
 ```bash
-# Run dev server (localhost only)
-uvicorn main:app --reload
-
-# Run dev server (accessible from phone/tablet on same Wi-Fi)
+# Run dev server
 uvicorn main:app --host 0.0.0.0 --reload
 
 # Create a new migration after model changes

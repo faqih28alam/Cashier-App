@@ -175,8 +175,8 @@ pip install -r requirements.txt
 cp .env.example .env          # then edit SECRET_KEY
 alembic upgrade head
 python seed.py                # optional: load sample data
-uvicorn main:app --reload
-# → http://localhost:8000
+uvicorn main:app --host 0.0.0.0 --reload
+# → http://0.0.0.0:8000
 # → http://localhost:8000/docs  (interactive API docs)
 
 # Frontend
@@ -184,8 +184,9 @@ cd frontend
 npm install
 cp .env.local.example .env.local   # or create manually
 # NEXT_PUBLIC_API_URL=http://localhost:8000
-npm run dev
-# → http://localhost:3000
+npm run dev -- --hostname 0.0.0.0
+# → http://localhost:3000  (same PC)
+# → http://<lan-ip>:3000  (phone/tablet)
 
 # Tests
 cd backend
