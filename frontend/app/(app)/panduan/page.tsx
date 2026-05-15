@@ -210,11 +210,21 @@ export default function PanduanPage() {
 
           {/* ── Laporan ── */}
           <Section id="laporan" title="Modul Laporan">
-            <p>Menampilkan ringkasan penjualan dalam bentuk grafik dan tabel produk terlaris.</p>
-            <Step n={1}>Buka halaman <strong>LAPORAN</strong>.</Step>
-            <Step n={2}>Atur rentang tanggal di bagian atas (default: bulan ini).</Step>
-            <Step n={3}>Klik <strong>Tampilkan</strong> untuk memuat data.</Step>
-            <p className="mt-1">Laporan menampilkan: total penjualan periode, jumlah transaksi, grafik penjualan harian, dan 10 produk terlaris.</p>
+            <p>Terdiri dari tiga halaman laporan:</p>
+            <div className="space-y-2">
+              <div className="border rounded p-3">
+                <p className="font-semibold">LAPORAN — Ringkasan &amp; Grafik</p>
+                <p className="text-gray-500 mt-1">Ringkasan penjualan, grafik revenue vs laba 14 hari, dan produk terlaris bulan ini. Atur rentang tanggal lalu klik <strong>Tampilkan</strong>. Tombol <strong>Export Laporan Lengkap</strong> mengunduh satu PDF yang menggabungkan ringkasan penjualan, detail per item, dan laporan pembelian sekaligus.</p>
+              </div>
+              <div className="border rounded p-3">
+                <p className="font-semibold">PENJUALAN — Detail Per Item</p>
+                <p className="text-gray-500 mt-1">Tabel semua item terjual beserta HPP, harga, diskon, dan laba kotor per baris. Bisa difilter per periode dan diekspor ke PDF tersendiri.</p>
+              </div>
+              <div className="border rounded p-3">
+                <p className="font-semibold">LAPORAN → Riwayat Transaksi</p>
+                <p className="text-gray-500 mt-1">Daftar transaksi per periode, bisa diperluas untuk melihat detail item dan mencetak ulang struk.</p>
+              </div>
+            </div>
             <Tip>Akses laporan dari ponsel atau laptop pemilik melalui WiFi yang sama: buka <Code>http://[IP komputer kasir]:3000/laporan</Code>. IP bisa dicek dengan perintah <Code>ipconfig</Code> (Windows) atau <Code>ifconfig</Code> (Mac/Linux).</Tip>
           </Section>
 
@@ -299,7 +309,7 @@ export default function PanduanPage() {
                 },
                 {
                   q: "Server backend tidak bisa diakses (error koneksi)",
-                  a: "Pastikan backend berjalan: buka terminal di folder backend, aktifkan virtual env, jalankan uvicorn main:app --reload. Cek di http://localhost:8000/health.",
+                  a: "Pastikan backend berjalan: buka terminal di folder backend, aktifkan virtual env, jalankan uvicorn main:app --host 0.0.0.0 --reload. Cek di http://localhost:8000/docs.",
                 },
               ].map(({ q, a }) => (
                 <div key={q} className="border rounded p-3">
