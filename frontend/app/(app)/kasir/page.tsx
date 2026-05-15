@@ -59,6 +59,8 @@ export default function KasirPage() {
   });
   const [numpadTarget, setNumpadTarget] = useState<number | null>(null);
   const [showPayment, setShowPayment] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<number | null>(null);
+  const [searchHighlight, setSearchHighlight] = useState(-1);
   const [receipt, setReceipt] = useState<null | {
     id: number; noTransaksi: string; tanggal: string; bayar: number; kembalian: number;
     items: TransaksiItem[]; total: number;
@@ -83,6 +85,8 @@ export default function KasirPage() {
       .then((res) => setSearchResults(res.slice(0, 8)))
       .catch(() => setSearchResults([]));
   }, [debouncedBarcode]);
+
+  useEffect(() => { setSearchHighlight(-1); }, [searchResults]);
 
   const total = items.reduce((s, i) => s + Number(i.total), 0);
   const user = getUser();
@@ -123,7 +127,42 @@ export default function KasirPage() {
   }
 
   function handleBarcodeKey(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") lookupBarcode(barcode);
+    if (e.key === "F1") {
+      e.preventDefault();
+      if (items.length > 0) setShowPayment(true);
+      return;
+    }
+    if (e.key === "Escape") {
+      setBarcode(""); setSearchResults([]); setSearchHighlight(-1); setSelectedRow(null);
+      return;
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (searchResults.length > 0) setSearchHighlight((h) => Math.min(h + 1, searchResults.length - 1));
+      else if (items.length > 0) setSelectedRow((r) => r === null ? 0 : Math.min(r + 1, items.length - 1));
+      return;
+    }
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (searchResults.length > 0) setSearchHighlight((h) => Math.max(h - 1, 0));
+      else if (items.length > 0) setSelectedRow((r) => r === null ? items.length - 1 : Math.max(r - 1, 0));
+      return;
+    }
+    if (e.key === "Enter") {
+      if (searchResults.length > 0 && searchHighlight >= 0) {
+        selectFromSearch(searchResults[searchHighlight]);
+        setSearchHighlight(-1);
+      } else if (barcode.trim()) {
+        lookupBarcode(barcode);
+      } else if (selectedRow !== null) {
+        setNumpadTarget(selectedRow);
+      }
+      return;
+    }
+    if (e.key === "Delete" && !barcode && selectedRow !== null) {
+      removeItem(selectedRow);
+      return;
+    }
   }
 
   function updateItem(idx: number, qty: number, diskon: number) {
@@ -140,11 +179,13 @@ export default function KasirPage() {
 
   function removeItem(idx: number) {
     setItems((prev) => prev.filter((_, i) => i !== idx));
+    setSelectedRow((r) => r === null ? null : r === idx ? null : r > idx ? r - 1 : r);
     barcodeRef.current?.focus();
   }
 
   function clearAll() {
     setItems([]);
+    setSelectedRow(null);
     barcodeRef.current?.focus();
   }
 
@@ -192,7 +233,7 @@ export default function KasirPage() {
               {items.length === 0 ? (
                 <tr><td colSpan={8} className="px-3 py-16 text-center text-gray-400 text-sm">Scan barcode atau ketik kode barang</td></tr>
               ) : items.map((item, idx) => (
-                <tr key={idx} className="hover:bg-blue-50 cursor-pointer" onClick={() => setNumpadTarget(idx)}>
+                <tr key={idx} className={`cursor-pointer transition-colors ${selectedRow === idx ? "bg-blue-100" : "hover:bg-blue-50"}`} onClick={() => { setSelectedRow(idx); setNumpadTarget(idx); }}>
                   <td className="px-3 py-2 text-gray-500">{idx + 1}</td>
                   <td className="px-3 py-2 font-medium">{item.nama_barang}</td>
                   <td className="px-3 py-2 text-gray-500">{item.sat}</td>
@@ -231,11 +272,11 @@ export default function KasirPage() {
             />
             {searchResults.length > 0 && (
               <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border rounded shadow-lg z-20 max-h-64 overflow-y-auto">
-                {searchResults.map((b) => (
+                {searchResults.map((b, idx) => (
                   <button
                     key={b.barcode}
                     onMouseDown={() => selectFromSearch(b)}
-                    className="flex items-center justify-between w-full px-3 py-2 hover:bg-blue-50 text-sm border-b last:border-0 text-left"
+                    className={`flex items-center justify-between w-full px-3 py-2 text-sm border-b last:border-0 text-left ${searchHighlight === idx ? "bg-blue-100" : "hover:bg-blue-50"}`}
                   >
                     <div>
                       <span className="font-medium text-gray-800">{b.nama_barang}</span>
@@ -259,12 +300,20 @@ export default function KasirPage() {
         <button onClick={() => items.length > 0 && setNumpadTarget(items.length - 1)} className="bg-gray-600 hover:bg-gray-500 text-white text-xs py-2 px-2 rounded">Edit QTY / Diskon</button>
         <button onClick={clearAll} className="bg-gray-600 hover:bg-gray-500 text-white text-xs py-2 px-2 rounded">Hapus Semua</button>
         <div className="flex-1" />
+        <div className="space-y-1 text-gray-500 text-xs">
+          <p><span className="bg-gray-700 text-gray-300 px-1 rounded font-mono">F1</span> Bayar</p>
+          <p><span className="bg-gray-700 text-gray-300 px-1 rounded font-mono">↑↓</span> Pilih item</p>
+          <p><span className="bg-gray-700 text-gray-300 px-1 rounded font-mono">Enter</span> Edit qty</p>
+          <p><span className="bg-gray-700 text-gray-300 px-1 rounded font-mono">Del</span> Hapus item</p>
+          <p><span className="bg-gray-700 text-gray-300 px-1 rounded font-mono">Esc</span> Reset</p>
+        </div>
         <button
           onClick={() => items.length > 0 && setShowPayment(true)}
           disabled={items.length === 0}
-          className="bg-green-500 hover:bg-green-400 disabled:opacity-40 text-white font-bold py-4 rounded text-sm"
+          className="bg-green-500 hover:bg-green-400 disabled:opacity-40 text-white font-bold py-3 rounded text-sm"
         >
-          BAYAR
+          <div>BAYAR</div>
+          <div className="text-xs font-normal opacity-70">F1</div>
         </button>
       </div>
 
