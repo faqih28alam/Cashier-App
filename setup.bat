@@ -24,8 +24,8 @@ if %errorlevel% neq 0 (
 echo Requirements met.
 echo.
 
-:: Detect local IP address (skip loopback and link-local)
-for /f %%i in ('powershell -nologo -command "(Get-NetIPAddress -AddressFamily IPv4 -Type Unicast | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' } | Select-Object -First 1).IPAddress"') do set LOCAL_IP=%%i
+:: Detect local IP address (skip loopback, link-local, and virtual adapter ranges)
+for /f %%i in ('powershell -nologo -command "(Get-NetIPAddress -AddressFamily IPv4 -Type Unicast | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' -and $_.IPAddress -notlike '192.168.255.*' } | Sort-Object -Property InterfaceIndex | Select-Object -First 1).IPAddress"') do set LOCAL_IP=%%i
 if "%LOCAL_IP%"=="" set LOCAL_IP=localhost
 echo Detected local IP: %LOCAL_IP%
 echo.
