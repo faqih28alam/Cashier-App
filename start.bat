@@ -13,8 +13,8 @@ if not exist "backend\venv" (
     exit /b
 )
 
-:: Detect current local IP
-for /f %%i in ('powershell -nologo -command "(Get-NetIPAddress -AddressFamily IPv4 -Type Unicast | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' } | Select-Object -First 1).IPAddress"') do set CURRENT_IP=%%i
+:: Detect current local IP (skip loopback, link-local, and virtual adapter ranges)
+for /f %%i in ('powershell -nologo -command "(Get-NetIPAddress -AddressFamily IPv4 -Type Unicast | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' -and $_.IPAddress -notlike '192.168.255.*' } | Sort-Object -Property InterfaceIndex | Select-Object -First 1).IPAddress"') do set CURRENT_IP=%%i
 if "%CURRENT_IP%"=="" set CURRENT_IP=localhost
 
 :: Read configured IP from .env.local
