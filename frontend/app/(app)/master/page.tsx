@@ -65,7 +65,7 @@ export default function MasterPage() {
     { key: "sat", label: "SAT", className: "hidden sm:table-cell" },
     { key: "hpp", label: "HPP", className: "hidden lg:table-cell", render: (r: Barang) => fmt(r.hpp) },
     { key: "harga_1", label: "Harga 1", className: "hidden md:table-cell", render: (r: Barang) => fmt(r.harga_1) },
-    { key: "stok", label: "Stok", render: (r: Barang) => <span className={r.stok <= r.stok_minimum ? "text-red-600 font-bold" : ""}>{r.stok}</span> },
+    { key: "stok", label: "Stok", render: (r: Barang) => <span className={Number(r.stok) <= Number(r.stok_minimum) ? "text-red-600 font-bold" : ""}>{r.stok}</span> },
     { key: "actions", label: "", render: (r: Barang) => (
       <div className="flex gap-1">
         <button onClick={() => openEdit(r)} className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-blue-600"><Pencil size={14} /></button>
