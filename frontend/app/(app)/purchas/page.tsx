@@ -6,7 +6,8 @@ import { toast } from "@/components/shared/Toast";
 import { DataTable } from "@/components/shared/DataTable";
 import { Modal } from "@/components/shared/Modal";
 
-interface PembelianRow { id: number; no_faktur: string; tanggal: string; total: number; status: string; }
+interface PembelianDetail { barcode: string; nama_barang: string; sat: string; qty: number; hpp: number; total: number; }
+interface PembelianRow { id: number; no_faktur: string; tanggal: string; total: number; status: string; detail: PembelianDetail[]; }
 interface DetailItem { barcode: string; nama_barang: string; sat: string; qty: number; hpp: number; }
 interface StoreSetting { nama_toko: string; alamat: string; telepon: string; }
 
@@ -22,6 +23,7 @@ export default function PurchasPage() {
   const [data, setData] = useState<PembelianRow[]>([]);
   const [setting, setSetting] = useState<StoreSetting>({ nama_toko: "", alamat: "", telepon: "" });
   const [showModal, setShowModal] = useState(false);
+  const [viewRow, setViewRow] = useState<PembelianRow | null>(null);
   const [exporting, setExporting] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [header, setHeader] = useState({ no_faktur: "", tanggal: new Date().toISOString().slice(0,10) });
@@ -192,14 +194,51 @@ export default function PurchasPage() {
             </span>
           )},
           { key: "actions", label: "", render: (r: PembelianRow) => r.status === "draft" && (
-            <button onClick={() => handleConfirm(r.id)} className="flex items-center gap-1 text-xs text-green-600 hover:text-green-800">
+            <button onClick={(e) => { e.stopPropagation(); handleConfirm(r.id); }} className="flex items-center gap-1 text-xs text-green-600 hover:text-green-800">
               <CheckCircle size={14} /> Konfirmasi
             </button>
           )},
         ]}
         data={data}
         keyField="id"
+        onRowClick={(r) => setViewRow(r)}
       />
+
+      {viewRow && (
+        <Modal title={`Detail Pembelian — ${viewRow.no_faktur || "(tanpa faktur)"}`} onClose={() => setViewRow(null)} width="max-w-2xl">
+          <div className="text-xs text-gray-500 mb-3 flex gap-6">
+            <span>Tanggal: <b className="text-gray-700">{new Date(viewRow.tanggal).toLocaleDateString("id-ID")}</b></span>
+            <span>Status: <b className={viewRow.status === "confirmed" ? "text-green-600" : "text-yellow-600"}>{viewRow.status}</b></span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="bg-gray-100">
+                <tr>{["Barcode","Nama Barang","SAT","QTY","HPP","Subtotal"].map((h) => (
+                  <th key={h} className={`px-2 py-1.5 font-medium text-left ${h === "HPP" || h === "Subtotal" ? "text-right" : ""}`}>{h}</th>
+                ))}</tr>
+              </thead>
+              <tbody className="divide-y">
+                {(viewRow.detail ?? []).map((d, i) => (
+                  <tr key={i} className="hover:bg-gray-50">
+                    <td className="px-2 py-1.5 text-gray-500">{d.barcode}</td>
+                    <td className="px-2 py-1.5 font-medium">{d.nama_barang}</td>
+                    <td className="px-2 py-1.5">{d.sat}</td>
+                    <td className="px-2 py-1.5">{Number(d.qty)}</td>
+                    <td className="px-2 py-1.5 text-right">{fmt(d.hpp)}</td>
+                    <td className="px-2 py-1.5 text-right font-semibold">{fmt(d.total)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2">
+                  <td colSpan={5} className="px-2 py-1.5 font-bold text-right">Total</td>
+                  <td className="px-2 py-1.5 font-bold text-right">Rp {fmt(viewRow.total)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </Modal>
+      )}
 
       {showModal && (
         <Modal title="Buat Pembelian" onClose={() => setShowModal(false)} width="max-w-3xl">
