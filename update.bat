@@ -1,18 +1,13 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal
+
+set INSTALL_DIR=%~dp0
+if "%INSTALL_DIR:~-1%"=="\" set INSTALL_DIR=%INSTALL_DIR:~0,-1%
 
 echo ==========================================
 echo   CASHIER APP - RENAL: UPDATE SCRIPT
 echo ==========================================
 echo.
-
-:: Check git
-git --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo Error: Git is not installed. Please install Git and try again.
-    pause
-    exit /b
-)
 
 :: Stop running app first
 echo [1/4] Stopping running app (if any)...
@@ -22,33 +17,51 @@ timeout /t 2 /nobreak >nul
 echo Done.
 echo.
 
-:: Pull latest code
+:: Download and apply latest code
 echo [2/4] Downloading latest update...
-git pull origin main
-if %errorlevel% neq 0 (
-    echo Error: Failed to download update. Check your internet connection.
-    pause
-    exit /b
+
+if exist "%INSTALL_DIR%\.git" (
+    git -C "%INSTALL_DIR%" pull origin main
+    if %errorlevel% neq 0 (
+        echo.
+        echo ERROR: git pull failed. Check internet connection.
+        pause
+        exit /b 1
+    )
+) else (
+    powershell -ExecutionPolicy Bypass -File "%INSTALL_DIR%\update_helper.ps1" -InstallDir "%INSTALL_DIR%"
+    if %errorlevel% neq 0 (
+        echo.
+        echo ERROR: Download or extraction failed. See messages above.
+        pause
+        exit /b 1
+    )
 )
 echo Update downloaded.
 echo.
 
-:: Update backend
-echo [3/4] Updating Backend...
-cd backend
+:: Update backend dependencies and run migrations
+echo [3/4] Updating backend...
+cd /d "%INSTALL_DIR%\backend"
 call venv\Scripts\activate
+if %errorlevel% neq 0 (
+    echo.
+    echo ERROR: Could not activate Python virtual environment.
+    pause
+    exit /b 1
+)
 pip install -r requirements.txt --quiet
 alembic upgrade head
-cd ..
+cd /d "%INSTALL_DIR%"
 echo Backend updated.
 echo.
 
 :: Rebuild frontend
-echo [4/4] Rebuilding Frontend...
-cd frontend
+echo [4/4] Rebuilding frontend...
+cd /d "%INSTALL_DIR%\frontend"
 call npm install --silent
 call npm run build
-cd ..
+cd /d "%INSTALL_DIR%"
 echo Frontend updated.
 echo.
 
