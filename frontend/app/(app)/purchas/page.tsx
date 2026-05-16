@@ -126,6 +126,8 @@ export default function PurchasPage() {
   }
 
   async function handleSave() {
+    if (!header.no_faktur.trim()) { toast("No. Faktur wajib diisi", "error"); return; }
+    if (detail.length === 0) { toast("Tambahkan minimal 1 barang", "error"); return; }
     try {
       await api.post("/purchas/", { ...header, tanggal: new Date(header.tanggal).toISOString(), detail });
       toast("Pembelian disimpan", "success");
