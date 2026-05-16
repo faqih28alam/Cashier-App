@@ -74,7 +74,19 @@ def confirm_pembelian(
     if pembelian.status == "confirmed":
         raise HTTPException(status_code=400, detail="Pembelian sudah dikonfirmasi")
 
+    from models.barang import Barang
+    auto_created = []
     for item in pembelian.detail:
+        if not db.get(Barang, item.barcode):
+            db.add(Barang(
+                barcode=item.barcode,
+                nama_barang=item.nama_barang,
+                sat=item.sat,
+                hpp=item.hpp,
+                harga_1=0,
+            ))
+            db.flush()
+            auto_created.append(item.nama_barang)
         stok.increment(db, item.barcode, item.qty)
 
     db.add(Keuangan(

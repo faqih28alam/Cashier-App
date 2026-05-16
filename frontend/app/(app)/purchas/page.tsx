@@ -9,6 +9,7 @@ import { Modal } from "@/components/shared/Modal";
 interface PembelianDetail { barcode: string; nama_barang: string; sat: string; qty: number; hpp: number; total: number; }
 interface PembelianRow { id: number; no_faktur: string; tanggal: string; total: number; status: string; detail: PembelianDetail[]; }
 interface DetailItem { barcode: string; nama_barang: string; sat: string; qty: number; hpp: number; }
+interface BarangResult { barcode: string; nama_barang: string; sat: string; hpp: number; }
 interface StoreSetting { nama_toko: string; alamat: string; telepon: string; }
 
 function fmt(n: number) { return Number(n).toLocaleString("id-ID"); }
@@ -24,6 +25,7 @@ export default function PurchasPage() {
   const [setting, setSetting] = useState<StoreSetting>({ nama_toko: "", alamat: "", telepon: "" });
   const [showModal, setShowModal] = useState(false);
   const [viewRow, setViewRow] = useState<PembelianRow | null>(null);
+  const [nameSearch, setNameSearch] = useState<{ row: number; results: BarangResult[] } | null>(null);
   const [exporting, setExporting] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [header, setHeader] = useState({ no_faktur: "", tanggal: new Date().toISOString().slice(0,10) });
@@ -151,6 +153,20 @@ export default function PurchasPage() {
   function updateRow(i: number, field: keyof DetailItem, val: string | number) {
     setDetail(detail.map((d, idx) => idx === i ? { ...d, [field]: val } : d));
   }
+  async function searchNama(i: number, q: string) {
+    updateRow(i, "nama_barang", q);
+    if (q.trim().length < 2) { setNameSearch(null); return; }
+    try {
+      const res = await api.get<BarangResult[]>("/master/barang", { q: q.trim() });
+      setNameSearch({ row: i, results: res.slice(0, 6) });
+    } catch { setNameSearch(null); }
+  }
+  function selectNama(i: number, b: BarangResult) {
+    setDetail(detail.map((d, idx) => idx === i
+      ? { ...d, barcode: b.barcode, nama_barang: b.nama_barang, sat: b.sat, hpp: Number(b.hpp) }
+      : d));
+    setNameSearch(null);
+  }
 
   return (
     <div className="p-5 space-y-4">
@@ -264,9 +280,26 @@ export default function PurchasPage() {
                       <input value={row.barcode} onChange={(e) => updateRow(i, "barcode", e.target.value)}
                         className="w-full border rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300" />
                     </td>
-                    <td className="px-1 py-1">
-                      <input value={row.nama_barang} onChange={(e) => updateRow(i, "nama_barang", e.target.value)}
-                        className="w-full border rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300" />
+                    <td className="px-1 py-1 relative">
+                      <input
+                        value={row.nama_barang}
+                        onChange={(e) => searchNama(i, e.target.value)}
+                        onBlur={() => setTimeout(() => setNameSearch(null), 150)}
+                        className="w-full border rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300"
+                        placeholder="Ketik nama..."
+                      />
+                      {nameSearch?.row === i && nameSearch.results.length > 0 && (
+                        <div className="absolute z-30 left-0 top-full mt-0.5 w-72 bg-white border rounded shadow-lg text-xs">
+                          {nameSearch.results.map((b) => (
+                            <button key={b.barcode} type="button" onMouseDown={() => selectNama(i, b)}
+                              className="w-full px-2 py-1.5 text-left hover:bg-blue-50 border-b last:border-0">
+                              <span className="font-medium text-gray-800">{b.nama_barang}</span>
+                              <span className="text-gray-400 ml-2">{b.barcode}</span>
+                              <span className="text-gray-500 ml-2">{b.sat}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </td>
                     <td className="px-1 py-1 w-28">
                       <input
