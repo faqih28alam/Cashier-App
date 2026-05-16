@@ -26,6 +26,7 @@ export default function PurchasPage() {
   const [showModal, setShowModal] = useState(false);
   const [viewRow, setViewRow] = useState<PembelianRow | null>(null);
   const [nameSearch, setNameSearch] = useState<{ row: number; results: BarangResult[] } | null>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number } | null>(null);
   const [exporting, setExporting] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [header, setHeader] = useState({ no_faktur: "", tanggal: new Date().toISOString().slice(0,10) });
@@ -153,9 +154,13 @@ export default function PurchasPage() {
   function updateRow(i: number, field: keyof DetailItem, val: string | number) {
     setDetail(detail.map((d, idx) => idx === i ? { ...d, [field]: val } : d));
   }
-  async function searchNama(i: number, q: string) {
+  async function searchNama(i: number, q: string, el?: HTMLInputElement) {
     updateRow(i, "nama_barang", q);
     if (q.trim().length < 2) { setNameSearch(null); return; }
+    if (el) {
+      const r = el.getBoundingClientRect();
+      setDropdownPos({ top: r.bottom + 2, left: r.left, width: Math.max(r.width, 280) });
+    }
     try {
       const res = await api.get<BarangResult[]>("/master/barang", { q: q.trim() });
       setNameSearch({ row: i, results: res.slice(0, 6) });
@@ -280,26 +285,14 @@ export default function PurchasPage() {
                       <input value={row.barcode} onChange={(e) => updateRow(i, "barcode", e.target.value)}
                         className="w-full border rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300" />
                     </td>
-                    <td className="px-1 py-1 relative">
+                    <td className="px-1 py-1">
                       <input
                         value={row.nama_barang}
-                        onChange={(e) => searchNama(i, e.target.value)}
+                        onChange={(e) => searchNama(i, e.target.value, e.currentTarget)}
                         onBlur={() => setTimeout(() => setNameSearch(null), 150)}
                         className="w-full border rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300"
                         placeholder="Ketik nama..."
                       />
-                      {nameSearch?.row === i && nameSearch.results.length > 0 && (
-                        <div className="absolute z-30 left-0 top-full mt-0.5 w-72 bg-white border rounded shadow-lg text-xs">
-                          {nameSearch.results.map((b) => (
-                            <button key={b.barcode} type="button" onMouseDown={() => selectNama(i, b)}
-                              className="w-full px-2 py-1.5 text-left hover:bg-blue-50 border-b last:border-0">
-                              <span className="font-medium text-gray-800">{b.nama_barang}</span>
-                              <span className="text-gray-400 ml-2">{b.barcode}</span>
-                              <span className="text-gray-500 ml-2">{b.sat}</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
                     </td>
                     <td className="px-1 py-1 w-28">
                       <input
@@ -342,6 +335,19 @@ export default function PurchasPage() {
             <button onClick={() => setShowModal(false)} className="px-4 py-2 text-sm border rounded hover:bg-gray-50">Batal</button>
             <button onClick={handleSave} className="px-4 py-2 text-sm bg-gray-800 text-white rounded hover:bg-gray-700">Simpan Draft</button>
           </div>
+          {nameSearch && nameSearch.results.length > 0 && dropdownPos && (
+            <div style={{ position: "fixed", top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, zIndex: 9999 }}
+              className="bg-white border rounded shadow-lg text-xs">
+              {nameSearch.results.map((b) => (
+                <button key={b.barcode} type="button" onMouseDown={() => selectNama(nameSearch.row, b)}
+                  className="w-full px-2 py-1.5 text-left hover:bg-blue-50 border-b last:border-0">
+                  <span className="font-medium text-gray-800">{b.nama_barang}</span>
+                  <span className="text-gray-400 ml-2">{b.barcode}</span>
+                  <span className="text-gray-500 ml-2">{b.sat}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </Modal>
       )}
     </div>
