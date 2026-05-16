@@ -20,6 +20,7 @@ interface Barang {
   barcode: string;
   nama_barang: string;
   sat: string;
+  stok: number;
   hpp: number;
   harga_1: number;
   harga_2: number;
@@ -282,7 +283,10 @@ export default function KasirPage() {
                       <span className="font-medium text-gray-800">{b.nama_barang}</span>
                       <span className="text-gray-400 text-xs ml-2">{b.barcode}</span>
                     </div>
-                    <span className="text-gray-600 font-medium ml-4">Rp {b.harga_1.toLocaleString("id-ID")}</span>
+                    <div className="ml-4 flex-shrink-0 text-right">
+                      <span className="text-xs text-gray-400 mr-2">Stok: {Number(b.stok)} {b.sat}</span>
+                      <span className="text-gray-700 font-medium">Rp {Number(b.harga_1).toLocaleString("id-ID")}</span>
+                    </div>
                   </button>
                 ))}
               </div>
