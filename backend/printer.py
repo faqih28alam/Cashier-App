@@ -29,16 +29,23 @@ def print_receipt(db: Session, trx: Transaksi) -> None:
     cols = 48 if width == 80 else 32
 
     if os.path.exists(LOGO_PATH):
-        from PIL import Image
+        from PIL import Image, ImageOps
         max_px = 360 if width == 58 else 512
-        logo = Image.open(LOGO_PATH)
+        logo = Image.open(LOGO_PATH).convert("RGBA")
+        # crop transparent/white padding so logo sits tight above store name
+        bg = Image.new("RGBA", logo.size, (255, 255, 255, 255))
+        bg.paste(logo, mask=logo.split()[3])
+        logo = bg.convert("RGB")
+        bbox = logo.getbbox()
+        if bbox:
+            logo = logo.crop(bbox)
         if logo.width > max_px:
             ratio = max_px / logo.width
             logo = logo.resize((max_px, int(logo.height * ratio)), Image.LANCZOS)
         p.set(align="center")
         p.image(logo)
 
-    p.set(align="center", bold=True, double_height=True, double_width=False)
+    p.set(align="center", bold=True, double_height=False, double_width=False)
     p.text(f"{setting.nama_toko}\n")
     p.set(align="center", bold=False, double_height=False)
     if setting.alamat:
