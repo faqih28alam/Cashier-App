@@ -67,7 +67,7 @@ def test_update_barang(client, db):
 def test_delete_barang(client, db):
     owner = make_user(db, "owner", role="owner")
     make_barang(db, barcode="8991101000001")
-    res = client.delete("/master/barang/8991101000001", headers=auth(owner))
+    res = client.delete("/master/barang?barcode=8991101000001", headers=auth(owner))
     assert res.status_code == 204
     # confirm gone
     res2 = client.get("/master/barang/8991101000001", headers=auth(owner))

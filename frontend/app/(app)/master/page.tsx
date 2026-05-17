@@ -53,7 +53,7 @@ export default function MasterPage() {
   async function handleDelete(barcode: string) {
     if (!confirm("Hapus barang ini?")) return;
     try {
-      await api.delete(`/master/barang/${barcode}`);
+      await api.delete(`/master/barang?barcode=${encodeURIComponent(barcode)}`);
       toast("Barang dihapus", "success");
       load();
     } catch (err) { toast((err as Error).message, "error"); }

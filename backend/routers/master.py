@@ -76,7 +76,7 @@ def update_barang(
     return barang
 
 
-@router.delete("/barang/{barcode}", status_code=204)
+@router.delete("/barang", status_code=204)
 def delete_barang(
     barcode: str,
     db: Annotated[Session, Depends(get_db)],
