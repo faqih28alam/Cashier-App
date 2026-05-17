@@ -38,6 +38,11 @@ interface TransaksiItem {
   harga: number;
   diskon: number;
   total: number;
+  harga_1: number;
+  harga_2: number;
+  min_qty_harga_2: number;
+  harga_3: number;
+  min_qty_harga_3: number;
 }
 
 function resolvePrice(b: Barang, qty: number): number {
@@ -103,7 +108,7 @@ export default function KasirPage() {
         return updated;
       }
       const harga = resolvePrice(barang, 1);
-      return [...prev, { barcode: barang.barcode, nama_barang: barang.nama_barang, sat: barang.sat, qty: 1, hpp: Number(barang.hpp), harga, diskon: 0, total: harga }];
+      return [...prev, { barcode: barang.barcode, nama_barang: barang.nama_barang, sat: barang.sat, qty: 1, hpp: Number(barang.hpp), harga, diskon: 0, total: harga, harga_1: Number(barang.harga_1), harga_2: Number(barang.harga_2), min_qty_harga_2: Number(barang.min_qty_harga_2), harga_3: Number(barang.harga_3), min_qty_harga_3: Number(barang.min_qty_harga_3) }];
     });
   }, []);
 
@@ -169,9 +174,9 @@ export default function KasirPage() {
   function updateItem(idx: number, qty: number, diskon: number) {
     setItems((prev) => {
       const updated = [...prev];
-      const item = { ...updated[idx], qty, diskon };
-      item.total = qty * item.harga - diskon;
-      updated[idx] = item;
+      const base = updated[idx];
+      const harga = resolvePrice({ harga_1: base.harga_1, harga_2: base.harga_2, min_qty_harga_2: base.min_qty_harga_2, harga_3: base.harga_3, min_qty_harga_3: base.min_qty_harga_3 } as Barang, qty);
+      updated[idx] = { ...base, qty, diskon, harga, total: qty * harga - diskon };
       return updated;
     });
     setNumpadTarget(null);
