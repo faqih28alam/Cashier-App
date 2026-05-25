@@ -91,7 +91,7 @@ cashier-app/
 │   ├── routers/                          # HTTP layer only — no business logic
 │   │   ├── auth.py                       # POST /auth/login
 │   │   ├── kasir.py                      # POST /kasir/transaksi, GET /kasir/session
-│   │   ├── purchas.py                    # CRUD /purchas/, POST /purchas/{id}/confirm
+│   │   ├── purchas.py                    # POST /, PUT /{id} (draft only), POST /{id}/confirm
 │   │   ├── keuangan.py                   # GET/POST /keuangan/
 │   │   ├── laporan.py                    # GET /laporan/penjualan, /produk-terlaris, /stok, /transaksi
 │   │   ├── master.py                     # CRUD /master/barang, /kategori, /supplier, /user
@@ -100,14 +100,15 @@ cashier-app/
 │   │
 │   ├── services/                         # business logic
 │   │   ├── transaksi.py                  # commit order: save → finance → stock → print
-│   │   ├── pricing.py                    # tiered price selection (harga 1/2/3)
+│   │   ├── pricing.py                    # tiered price selection via barang_harga table
 │   │   ├── stok.py                       # increment / decrement with stock guard
 │   │   └── laporan.py                    # report queries + aggregations
 │   │
 │   ├── models/                           # SQLAlchemy ORM models
 │   │   ├── user.py, barang.py, kategori.py, supplier.py
+│   │   ├── barang_harga.py               # tiered pricing rows (min_qty, harga) per barang
 │   │   ├── transaksi.py                  # header + detail
-│   │   ├── pembelian.py                  # header + detail
+│   │   ├── pembelian.py                  # header + detail (includes harga_1 for auto-create)
 │   │   ├── keuangan.py, setting.py
 │   │   └── __init__.py                   # imports all models for Alembic
 │   │

@@ -74,7 +74,7 @@ backend/
 | auth | `/auth` | `POST /login` |
 | kasir | `/kasir` | `POST /transaksi`, `GET /session` |
 | master | `/master` | CRUD `/barang`, `/kategori`, `/supplier`, `/user` |
-| purchas | `/purchas` | `POST /`, `POST /{id}/confirm` |
+| purchas | `/purchas` | `POST /`, `PUT /{id}` (draft only), `POST /{id}/confirm` |
 | keuangan | `/keuangan` | `GET /`, `POST /` |
 | laporan | `/laporan` | `GET /penjualan`, `/produk-terlaris`, `/stok` |
 | setting | `/setting` | `GET /`, `PUT /` |
