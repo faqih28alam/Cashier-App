@@ -6,17 +6,17 @@ import { toast } from "@/components/shared/Toast";
 import { DataTable } from "@/components/shared/DataTable";
 import { Modal } from "@/components/shared/Modal";
 
+interface HargaTier { id?: number; min_qty: number; harga: number; }
+
 interface Barang {
   barcode: string; nama_barang: string; sat: string; hpp: number;
-  harga_1: number; harga_2: number; min_qty_harga_2: number;
-  harga_3: number; min_qty_harga_3: number; stok: number; stok_minimum: number;
-  id_kategori?: number;
+  harga_1: number; stok: number; stok_minimum: number;
+  id_kategori?: number; harga_tiers: HargaTier[];
 }
 
 const EMPTY: Barang = {
   barcode: "", nama_barang: "", sat: "PCS", hpp: 0,
-  harga_1: 0, harga_2: 0, min_qty_harga_2: 0,
-  harga_3: 0, min_qty_harga_3: 0, stok: 0, stok_minimum: 0,
+  harga_1: 0, stok: 0, stok_minimum: 0, harga_tiers: [],
 };
 
 function fmt(n: number) { return Number(n).toLocaleString("id-ID"); }
@@ -25,6 +25,7 @@ export default function MasterPage() {
   const [data, setData] = useState<Barang[]>([]);
   const [q, setQ] = useState("");
   const [form, setForm] = useState<Barang>(EMPTY);
+  const [tiers, setTiers] = useState<HargaTier[]>([]);
   const [editBarcode, setEditBarcode] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -37,13 +38,14 @@ export default function MasterPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  function openCreate() { setForm(EMPTY); setEditBarcode(null); setShowModal(true); }
-  function openEdit(b: Barang) { setForm(b); setEditBarcode(b.barcode); setShowModal(true); }
+  function openCreate() { setForm(EMPTY); setTiers([]); setEditBarcode(null); setShowModal(true); }
+  function openEdit(b: Barang) { setForm(b); setTiers(b.harga_tiers ?? []); setEditBarcode(b.barcode); setShowModal(true); }
 
   async function handleSave() {
     try {
-      if (editBarcode) await api.put(`/master/barang/${editBarcode}`, form);
-      else await api.post("/master/barang", form);
+      const payload = { ...form, harga_tiers: tiers };
+      if (editBarcode) await api.put(`/master/barang/${editBarcode}`, payload);
+      else await api.post("/master/barang", payload);
       toast(editBarcode ? "Barang diperbarui" : "Barang ditambahkan", "success");
       setShowModal(false);
       load();
@@ -125,13 +127,51 @@ export default function MasterPage() {
             {F("nama_barang", "Nama Barang")}
             {F("sat", "Satuan")}
             {F("hpp", "HPP", "number")}
-            {F("harga_1", "Harga 1", "number")}
-            {F("harga_2", "Harga 2", "number")}
-            {F("min_qty_harga_2", "Min QTY Harga 2", "number")}
-            {F("harga_3", "Harga 3", "number")}
-            {F("min_qty_harga_3", "Min QTY Harga 3", "number")}
+            {F("harga_1", "Harga 1 (Eceran)", "number")}
             {F("stok", "Stok", "number")}
             {F("stok_minimum", "Stok Minimum", "number")}
+          </div>
+
+          {/* Dynamic tiered pricing */}
+          <div className="mt-3">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-medium text-gray-600">Harga Grosir (Opsional)</label>
+              <button
+                type="button"
+                onClick={() => setTiers([...tiers, { min_qty: 0, harga: 0 }])}
+                className="text-xs text-blue-600 hover:underline"
+              >
+                + Tambah Harga
+              </button>
+            </div>
+            {tiers.length === 0 && (
+              <p className="text-xs text-gray-400">Belum ada harga grosir. Klik "+ Tambah Harga" untuk menambah.</p>
+            )}
+            {tiers.map((tier, i) => (
+              <div key={i} className="flex items-center gap-2 mb-2">
+                <div className="flex-1">
+                  <label className="block text-xs text-gray-500 mb-0.5">Min QTY</label>
+                  <input
+                    type="number" min="1" value={tier.min_qty}
+                    onChange={(e) => setTiers(tiers.map((t, j) => j === i ? { ...t, min_qty: Number(e.target.value) || 0 } : t))}
+                    className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs text-gray-500 mb-0.5">Harga {i + 2}</label>
+                  <input
+                    type="number" min="0" value={tier.harga}
+                    onChange={(e) => setTiers(tiers.map((t, j) => j === i ? { ...t, harga: Number(e.target.value) || 0 } : t))}
+                    className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTiers(tiers.filter((_, j) => j !== i))}
+                  className="mt-4 text-red-400 hover:text-red-600 text-lg leading-none"
+                >×</button>
+              </div>
+            ))}
           </div>
           <div className="flex justify-end gap-2 mt-4">
             <button onClick={() => setShowModal(false)} className="px-4 py-2 text-sm border rounded hover:bg-gray-50">Batal</button>

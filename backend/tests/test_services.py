@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 import models
 from database import Base
 from models.barang import Barang
+from models.barang_harga import BarangHarga
 from services.pricing import resolve_price
 from services import stok as stok_service
 
@@ -32,14 +33,15 @@ def _barang(session, barcode="B001", harga_1=8000, harga_2=7500, min2=5, harga_3
         sat="PCS",
         hpp=Decimal("5000"),
         harga_1=Decimal(str(harga_1)),
-        harga_2=Decimal(str(harga_2)),
-        min_qty_harga_2=min2,
-        harga_3=Decimal(str(harga_3)),
-        min_qty_harga_3=min3,
         stok=Decimal(str(stok)),
         stok_minimum=Decimal("2"),
     )
     session.add(b)
+    session.flush()
+    if min2 > 0:
+        session.add(BarangHarga(barcode=barcode, min_qty=Decimal(str(min2)), harga=Decimal(str(harga_2))))
+    if min3 > 0:
+        session.add(BarangHarga(barcode=barcode, min_qty=Decimal(str(min3)), harga=Decimal(str(harga_3))))
     session.commit()
     session.refresh(b)
     return b
@@ -63,9 +65,8 @@ class TestResolvePrice:
         assert resolve_price(b, Decimal("10")) == Decimal("7000")
         assert resolve_price(b, Decimal("100")) == Decimal("7000")
 
-    def test_harga_2_disabled_when_min_is_zero(self, session):
+    def test_no_tiers_always_harga_1(self, session):
         b = _barang(session, min2=0, min3=0)
-        # both tiers disabled — always harga_1
         assert resolve_price(b, Decimal("100")) == Decimal("8000")
 
     def test_boundary_exactly_at_min_qty(self, session):

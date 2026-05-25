@@ -85,20 +85,20 @@ def auth(user: User) -> dict:
 
 
 def make_barang(db, barcode: str = "8991101000001", stok: int = 20) -> Barang:
+    from models.barang_harga import BarangHarga
     b = Barang(
         barcode=barcode,
         nama_barang="Test Barang",
         sat="PCS",
         hpp=Decimal("5000"),
         harga_1=Decimal("8000"),
-        harga_2=Decimal("7500"),
-        min_qty_harga_2=5,
-        harga_3=Decimal("7000"),
-        min_qty_harga_3=10,
         stok=Decimal(str(stok)),
         stok_minimum=Decimal("2"),
     )
     db.add(b)
+    db.flush()
+    db.add(BarangHarga(barcode=barcode, min_qty=Decimal("5"), harga=Decimal("7500")))
+    db.add(BarangHarga(barcode=barcode, min_qty=Decimal("10"), harga=Decimal("7000")))
     db.commit()
     db.refresh(b)
     return b

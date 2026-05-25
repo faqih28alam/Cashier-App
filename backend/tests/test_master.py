@@ -6,12 +6,12 @@ BARANG_PAYLOAD = {
     "sat": "BTL",
     "hpp": 2500,
     "harga_1": 3500,
-    "harga_2": 3200,
-    "min_qty_harga_2": 12,
-    "harga_3": 3000,
-    "min_qty_harga_3": 24,
     "stok": 50,
     "stok_minimum": 10,
+    "harga_tiers": [
+        {"min_qty": 12, "harga": 3200},
+        {"min_qty": 24, "harga": 3000},
+    ],
 }
 
 

@@ -16,6 +16,11 @@ interface StoreSetting {
   receipt_footer: string;
 }
 
+interface HargaTier {
+  min_qty: number;
+  harga: number;
+}
+
 interface Barang {
   barcode: string;
   nama_barang: string;
@@ -23,10 +28,7 @@ interface Barang {
   stok: number;
   hpp: number;
   harga_1: number;
-  harga_2: number;
-  min_qty_harga_2: number;
-  harga_3: number;
-  min_qty_harga_3: number;
+  harga_tiers: HargaTier[];
 }
 
 interface TransaksiItem {
@@ -39,15 +41,14 @@ interface TransaksiItem {
   diskon: number;
   total: number;
   harga_1: number;
-  harga_2: number;
-  min_qty_harga_2: number;
-  harga_3: number;
-  min_qty_harga_3: number;
+  harga_tiers: HargaTier[];
 }
 
-function resolvePrice(b: Barang, qty: number): number {
-  if (Number(b.min_qty_harga_3) > 0 && qty >= Number(b.min_qty_harga_3)) return Number(b.harga_3);
-  if (Number(b.min_qty_harga_2) > 0 && qty >= Number(b.min_qty_harga_2)) return Number(b.harga_2);
+function resolvePrice(b: Pick<Barang, "harga_1" | "harga_tiers">, qty: number): number {
+  const tiers = [...b.harga_tiers].sort((a, b) => Number(b.min_qty) - Number(a.min_qty));
+  for (const tier of tiers) {
+    if (qty >= Number(tier.min_qty)) return Number(tier.harga);
+  }
   return Number(b.harga_1);
 }
 
@@ -108,7 +109,7 @@ export default function KasirPage() {
         return updated;
       }
       const harga = resolvePrice(barang, 1);
-      return [...prev, { barcode: barang.barcode, nama_barang: barang.nama_barang, sat: barang.sat, qty: 1, hpp: Number(barang.hpp), harga, diskon: 0, total: harga, harga_1: Number(barang.harga_1), harga_2: Number(barang.harga_2), min_qty_harga_2: Number(barang.min_qty_harga_2), harga_3: Number(barang.harga_3), min_qty_harga_3: Number(barang.min_qty_harga_3) }];
+      return [...prev, { barcode: barang.barcode, nama_barang: barang.nama_barang, sat: barang.sat, qty: 1, hpp: Number(barang.hpp), harga, diskon: 0, total: harga, harga_1: Number(barang.harga_1), harga_tiers: barang.harga_tiers }];
     });
   }, []);
 
@@ -175,7 +176,7 @@ export default function KasirPage() {
     setItems((prev) => {
       const updated = [...prev];
       const base = updated[idx];
-      const harga = resolvePrice({ harga_1: base.harga_1, harga_2: base.harga_2, min_qty_harga_2: base.min_qty_harga_2, harga_3: base.harga_3, min_qty_harga_3: base.min_qty_harga_3 } as Barang, qty);
+      const harga = resolvePrice({ harga_1: base.harga_1, harga_tiers: base.harga_tiers }, qty);
       updated[idx] = { ...base, qty, diskon, harga, total: qty * harga - diskon };
       return updated;
     });

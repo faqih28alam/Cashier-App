@@ -5,10 +5,11 @@ from passlib.context import CryptContext
 
 from dependencies import get_db, get_current_user, require_role
 from models.barang import Barang
+from models.barang_harga import BarangHarga
 from models.kategori import Kategori
 from models.supplier import Supplier
 from models.user import User
-from schemas.barang import BarangCreate, BarangOut, BarangUpdate
+from schemas.barang import BarangCreate, BarangHargaIn, BarangOut, BarangUpdate
 from schemas.master import KategoriCreate, KategoriOut, SupplierCreate, SupplierOut
 from schemas.user import UserCreate, UserOut, UserUpdate
 
@@ -52,8 +53,11 @@ def create_barang(
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[User, Depends(require_role("admin", "owner"))],
 ):
-    barang = Barang(**payload.model_dump())
+    barang = Barang(**payload.model_dump(exclude={"harga_tiers"}))
     db.add(barang)
+    db.flush()
+    for tier in payload.harga_tiers:
+        db.add(BarangHarga(barcode=barang.barcode, **tier.model_dump()))
     db.commit()
     db.refresh(barang)
     return barang
@@ -69,8 +73,14 @@ def update_barang(
     barang = db.get(Barang, barcode)
     if not barang:
         raise HTTPException(status_code=404, detail="Barang tidak ditemukan")
-    for k, v in payload.model_dump(exclude_none=True).items():
+    data = payload.model_dump(exclude_none=True)
+    tiers = data.pop("harga_tiers", None)
+    for k, v in data.items():
         setattr(barang, k, v)
+    if tiers is not None:
+        db.query(BarangHarga).filter(BarangHarga.barcode == barcode).delete()
+        for tier in tiers:
+            db.add(BarangHarga(barcode=barcode, **tier))
     db.commit()
     db.refresh(barang)
     return barang
