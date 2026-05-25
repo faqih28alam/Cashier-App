@@ -27,6 +27,7 @@ class PembelianDetail(Base):
     sat          = Column(String(20), nullable=False)
     qty          = Column(Numeric(15, 2), nullable=False)
     hpp          = Column(Numeric(15, 2), nullable=False, default=0)
+    harga_1      = Column(Numeric(15, 2), nullable=False, default=0)
     total        = Column(Numeric(15, 2), nullable=False)
 
     pembelian = relationship("Pembelian", back_populates="detail")

@@ -54,6 +54,43 @@ def create_pembelian(
             sat=item.sat,
             qty=item.qty,
             hpp=item.hpp,
+            harga_1=item.harga_1,
+            total=item.qty * item.hpp,
+        ))
+
+    db.commit()
+    db.refresh(pembelian)
+    return pembelian
+
+
+@router.put("/{id}", response_model=PembelianOut)
+def update_pembelian(
+    id: int,
+    payload: PembelianCreate,
+    db: Annotated[Session, Depends(get_db)],
+    _: Annotated[User, Depends(require_role("admin", "owner"))],
+):
+    pembelian = db.get(Pembelian, id)
+    if not pembelian:
+        raise HTTPException(status_code=404, detail="Pembelian tidak ditemukan")
+    if pembelian.status == "confirmed":
+        raise HTTPException(status_code=400, detail="Pembelian yang sudah dikonfirmasi tidak dapat diubah")
+
+    pembelian.no_faktur = payload.no_faktur
+    pembelian.tanggal = payload.tanggal
+    pembelian.id_supplier = payload.id_supplier
+    pembelian.total = sum(item.qty * item.hpp for item in payload.detail)
+
+    db.query(PembelianDetail).filter(PembelianDetail.id_pembelian == id).delete()
+    for item in payload.detail:
+        db.add(PembelianDetail(
+            id_pembelian=pembelian.id,
+            barcode=item.barcode,
+            nama_barang=item.nama_barang,
+            sat=item.sat,
+            qty=item.qty,
+            hpp=item.hpp,
+            harga_1=item.harga_1,
             total=item.qty * item.hpp,
         ))
 
@@ -83,7 +120,7 @@ def confirm_pembelian(
                 nama_barang=item.nama_barang,
                 sat=item.sat,
                 hpp=item.hpp,
-                harga_1=0,
+                harga_1=item.harga_1,
             ))
             db.flush()
             auto_created.append(item.nama_barang)

@@ -10,6 +10,7 @@ class PembelianDetailIn(BaseModel):
     sat: str
     qty: Decimal
     hpp: Decimal
+    harga_1: Decimal = Decimal("0")
 
 
 class PembelianCreate(BaseModel):

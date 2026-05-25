@@ -1,14 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Plus, CheckCircle, FileDown } from "lucide-react";
+import { Plus, CheckCircle, FileDown, Pencil } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "@/components/shared/Toast";
 import { DataTable } from "@/components/shared/DataTable";
 import { Modal } from "@/components/shared/Modal";
 
-interface PembelianDetail { barcode: string; nama_barang: string; sat: string; qty: number; hpp: number; total: number; }
+interface PembelianDetail { barcode: string; nama_barang: string; sat: string; qty: number; hpp: number; harga_1: number; total: number; }
 interface PembelianRow { id: number; no_faktur: string; tanggal: string; total: number; status: string; detail: PembelianDetail[]; }
-interface DetailItem { barcode: string; nama_barang: string; sat: string; qty: number; hpp: number; }
+interface DetailItem { barcode: string; nama_barang: string; sat: string; qty: number; hpp: number; harga_1: number; }
 interface BarangResult { barcode: string; nama_barang: string; sat: string; hpp: number; }
 interface StoreSetting { nama_toko: string; alamat: string; telepon: string; }
 
@@ -24,13 +24,14 @@ export default function PurchasPage() {
   const [data, setData] = useState<PembelianRow[]>([]);
   const [setting, setSetting] = useState<StoreSetting>({ nama_toko: "", alamat: "", telepon: "" });
   const [showModal, setShowModal] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
   const [viewRow, setViewRow] = useState<PembelianRow | null>(null);
   const [nameSearch, setNameSearch] = useState<{ row: number; results: BarangResult[] } | null>(null);
   const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number } | null>(null);
   const [exporting, setExporting] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [header, setHeader] = useState({ no_faktur: "", tanggal: new Date().toISOString().slice(0,10) });
-  const [detail, setDetail] = useState<DetailItem[]>([{ barcode: "", nama_barang: "", sat: "PCS", qty: 1, hpp: 0 }]);
+  const [detail, setDetail] = useState<DetailItem[]>([{ barcode: "", nama_barang: "", sat: "PCS", qty: 1, hpp: 0, harga_1: 0 }]);
 
   async function load() {
     try {
@@ -130,12 +131,32 @@ export default function PurchasPage() {
     }
   }
 
+  function openCreateModal() {
+    setEditId(null);
+    setHeader({ no_faktur: "", tanggal: new Date().toISOString().slice(0, 10) });
+    setDetail([{ barcode: "", nama_barang: "", sat: "PCS", qty: 1, hpp: 0, harga_1: 0 }]);
+    setShowModal(true);
+  }
+
+  function openEditModal(r: PembelianRow) {
+    setEditId(r.id);
+    setHeader({ no_faktur: r.no_faktur, tanggal: new Date(r.tanggal).toISOString().slice(0, 10) });
+    setDetail(r.detail.map((d) => ({ barcode: d.barcode, nama_barang: d.nama_barang, sat: d.sat, qty: Number(d.qty), hpp: Number(d.hpp), harga_1: Number(d.harga_1 ?? 0) })));
+    setShowModal(true);
+  }
+
   async function handleSave() {
     if (!header.no_faktur.trim()) { toast("No. Faktur wajib diisi", "error"); return; }
     if (detail.length === 0) { toast("Tambahkan minimal 1 barang", "error"); return; }
     try {
-      await api.post("/purchas/", { ...header, tanggal: new Date(header.tanggal).toISOString(), detail });
-      toast("Pembelian disimpan", "success");
+      const payload = { ...header, tanggal: new Date(header.tanggal).toISOString(), detail };
+      if (editId !== null) {
+        await api.put(`/purchas/${editId}`, payload);
+        toast("Pembelian diperbarui", "success");
+      } else {
+        await api.post("/purchas/", payload);
+        toast("Pembelian disimpan", "success");
+      }
       setShowModal(false);
       load();
     } catch (err) { toast((err as Error).message, "error"); }
@@ -150,7 +171,7 @@ export default function PurchasPage() {
     } catch (err) { toast((err as Error).message, "error"); }
   }
 
-  function addRow() { setDetail([...detail, { barcode: "", nama_barang: "", sat: "PCS", qty: 1, hpp: 0 }]); }
+  function addRow() { setDetail([...detail, { barcode: "", nama_barang: "", sat: "PCS", qty: 1, hpp: 0, harga_1: 0 }]); }
   function updateRow(i: number, field: keyof DetailItem, val: string | number) {
     setDetail(detail.map((d, idx) => idx === i ? { ...d, [field]: val } : d));
   }
@@ -189,7 +210,7 @@ export default function PurchasPage() {
             <FileDown size={15} />
             {exporting ? "Mengekspor..." : "Export PDF"}
           </button>
-          <button onClick={() => setShowModal(true)} className="flex items-center gap-1 bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-sm">
+          <button onClick={openCreateModal} className="flex items-center gap-1 bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-sm">
             <Plus size={14} /> Buat Pembelian
           </button>
         </div>
@@ -215,9 +236,14 @@ export default function PurchasPage() {
             </span>
           )},
           { key: "actions", label: "", render: (r: PembelianRow) => r.status === "draft" && (
-            <button onClick={(e) => { e.stopPropagation(); handleConfirm(r.id); }} className="flex items-center gap-1 text-xs text-green-600 hover:text-green-800">
-              <CheckCircle size={14} /> Konfirmasi
-            </button>
+            <div className="flex items-center gap-3">
+              <button onClick={(e) => { e.stopPropagation(); openEditModal(r); }} className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800">
+                <Pencil size={14} /> Edit
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); handleConfirm(r.id); }} className="flex items-center gap-1 text-xs text-green-600 hover:text-green-800">
+                <CheckCircle size={14} /> Konfirmasi
+              </button>
+            </div>
           )},
         ]}
         data={data}
@@ -262,7 +288,7 @@ export default function PurchasPage() {
       )}
 
       {showModal && (
-        <Modal title="Buat Pembelian" onClose={() => setShowModal(false)} width="max-w-3xl">
+        <Modal title={editId !== null ? "Edit Pembelian" : "Buat Pembelian"} onClose={() => setShowModal(false)} width="max-w-3xl">
           <div className="grid grid-cols-2 gap-3 mb-4">
             {[["no_faktur","No. Faktur","text"],["tanggal","Tanggal","date"]].map(([k, label, type]) => (
               <div key={k}>
@@ -276,7 +302,7 @@ export default function PurchasPage() {
           <div className="overflow-x-auto mb-3">
             <table className="w-full text-xs">
               <thead className="bg-gray-100">
-                <tr>{["Barcode","Nama","SAT","QTY","HPP (Rp)","Subtotal"].map((h) => <th key={h} className={`px-2 py-1.5 font-medium ${h === "Subtotal" ? "text-right" : "text-left"}`}>{h}</th>)}</tr>
+                <tr>{["Barcode","Nama","SAT","QTY","HPP (Rp)","Harga Jual (Rp)","Subtotal"].map((h) => <th key={h} className={`px-2 py-1.5 font-medium ${h === "Subtotal" ? "text-right" : "text-left"}`}>{h}</th>)}</tr>
               </thead>
               <tbody className="divide-y">
                 {detail.map((row, i) => (
@@ -317,6 +343,12 @@ export default function PurchasPage() {
                         className="w-full border rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300"
                         placeholder="0" />
                     </td>
+                    <td className="px-1 py-1 w-28">
+                      <input type="number" min="0" step="1" value={row.harga_1}
+                        onChange={(e) => updateRow(i, "harga_1", Number(e.target.value) || 0)}
+                        className="w-full border rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300"
+                        placeholder="0" />
+                    </td>
                     <td className="px-2 py-1 text-right text-xs font-medium text-gray-700 whitespace-nowrap">
                       Rp {fmt(row.qty * row.hpp)}
                     </td>
@@ -333,7 +365,7 @@ export default function PurchasPage() {
           </div>
           <div className="flex justify-end gap-2">
             <button onClick={() => setShowModal(false)} className="px-4 py-2 text-sm border rounded hover:bg-gray-50">Batal</button>
-            <button onClick={handleSave} className="px-4 py-2 text-sm bg-gray-800 text-white rounded hover:bg-gray-700">Simpan Draft</button>
+            <button onClick={handleSave} className="px-4 py-2 text-sm bg-gray-800 text-white rounded hover:bg-gray-700">{editId !== null ? "Simpan Perubahan" : "Simpan Draft"}</button>
           </div>
           {nameSearch && nameSearch.results.length > 0 && dropdownPos && (
             <div style={{ position: "fixed", top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, zIndex: 9999 }}
