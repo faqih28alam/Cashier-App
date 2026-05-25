@@ -92,7 +92,12 @@ export function NumpadPopup({ productName, unit, harga, initialQty, initialDisko
           {tabs.map((t) => (
             <button
               key={t.key}
-              onClick={() => setMode(t.key)}
+              onClick={() => {
+                if (mode === "nominal" && nominalQty > 0) {
+                  setQty(String(Math.round(nominalQty * 1000) / 1000));
+                }
+                setMode(t.key);
+              }}
               className={`flex-1 py-2.5 transition-colors ${
                 mode === t.key
                   ? `${t.color} text-white`
