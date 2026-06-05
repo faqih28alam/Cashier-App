@@ -70,8 +70,12 @@ def print_receipt(db: Session, trx: Transaksi) -> None:
     for item in trx.detail:
         p.text(f"{item.nama_barang}\n")
         line = f"  {float(item.qty):.0f} {item.sat} x {float(item.harga):,.0f}"
-        total_str = f"{float(item.total):>10,.0f}"
-        p.text(f"{line:<{cols - 10}}{total_str}\n")
+        subtotal = float(item.qty) * float(item.harga)
+        subtotal_str = f"{subtotal:>10,.0f}"
+        p.text(f"{line:<{cols - 10}}{subtotal_str}\n")
+        if item.diskon and float(item.diskon) > 0:
+            diskon_str = f"{float(item.diskon):>10,.0f}"
+            p.text(f"  {'Diskon':<{cols - 12}}-{diskon_str}\n")
 
     p.text("-" * cols + "\n")
     p.set(align="left", bold=True, double_height=False, double_width=False)

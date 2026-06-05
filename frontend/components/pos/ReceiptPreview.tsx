@@ -9,6 +9,7 @@ interface Item {
   qty: number;
   sat: string;
   harga: number;
+  diskon: number;
   total: number;
 }
 
@@ -78,8 +79,14 @@ export function ReceiptPreview({
             <p className="truncate">{item.nama_barang}</p>
             <div className="flex justify-between">
               <span>{item.qty} {item.sat} x {fmt(item.harga)}</span>
-              <span>{fmt(item.total)}</span>
+              <span>{fmt(item.qty * item.harga)}</span>
             </div>
+            {item.diskon > 0 && (
+              <div className="flex justify-between text-red-600">
+                <span>  Diskon</span>
+                <span>-{fmt(item.diskon)}</span>
+              </div>
+            )}
           </div>
         ))}
         <p>{"-".repeat(32)}</p>
