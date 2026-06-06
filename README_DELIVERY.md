@@ -55,6 +55,14 @@ Aplikasi dapat dibuka dari ponsel, tablet, atau laptop lain selama terhubung ke 
 > Jika akses dari ponsel tiba-tiba tidak bisa, jalankan kembali **`setup.bat`** lalu **`start.bat`**.
 > `start.bat` akan memberikan peringatan otomatis jika IP berubah.
 
+### 📋 Ringkasan Skenario
+
+| Skenario | Yang Dijalankan |
+|---|---|
+| **Update app** (kode baru) | `update.bat` → `start.bat` |
+| **Pertama kali install** | `setup.bat` → `start.bat` |
+| **IP berubah** (router kasih IP baru) | `setup.bat` → `start.bat` |
+
 ### 🔄 Memperbarui Aplikasi
 
 Jika pengembang mengirimkan pembaruan:
@@ -137,6 +145,14 @@ The app can be opened from a phone, tablet, or another laptop as long as it is c
 > **Note:** The IP address (`192.168.x.x`) may change if the router assigns a new IP to the PC.
 > If phone access suddenly stops working, re-run **`setup.bat`** and then **`start.bat`**.
 > `start.bat` will automatically warn you if the IP has changed.
+
+### 📋 Scenario Summary
+
+| Scenario | What to Run |
+|---|---|
+| **App update** (new code) | `update.bat` → `start.bat` |
+| **First-time install** | `setup.bat` → `start.bat` |
+| **IP changed** (router assigned new IP) | `setup.bat` → `start.bat` |
 
 ### 🔄 Updating the App
 
