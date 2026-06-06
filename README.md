@@ -209,6 +209,8 @@ DATABASE_URL=sqlite:///./cashier.db
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
+> `NEXT_PUBLIC_API_URL` is only used as an SSR fallback. At runtime, `lib/api.ts` derives the backend URL from `window.location.hostname` automatically — phone/tablet access on the same Wi-Fi works without changing this value.
+
 ---
 
 ## Transaction Commit Order
@@ -228,6 +230,8 @@ POST /kasir/transaksi
 ---
 
 ## Access on Local Network
+
+No extra configuration needed. `lib/api.ts` automatically uses `window.location.hostname` to reach the backend, so the app works correctly whether opened from the PC (`localhost`) or from a phone/tablet on the same Wi-Fi (`192.168.x.x`).
 
 ```bash
 # find your local IP

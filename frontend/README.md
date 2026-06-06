@@ -25,8 +25,8 @@ npm run dev -- --hostname 0.0.0.0   # binds to all interfaces; access via localh
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-For phone/tablet access on the same Wi-Fi, change `localhost` to the PC's LAN IP (e.g. `http://192.168.1.5:8000`). This value is baked in at build time — changing it requires restarting the dev server or rebuilding for production.
-
+> `NEXT_PUBLIC_API_URL` is only used as an SSR fallback. At runtime, `lib/api.ts` derives the backend URL from `window.location.hostname` — so phone/tablet access works automatically without any extra config.
+>
 > Backend must be running on port 8000 before using the app.
 
 ## Commands

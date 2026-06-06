@@ -1,6 +1,9 @@
 import { getToken, clearAuth } from "./auth";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const getBaseUrl = () => {
+  if (typeof window === "undefined") return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+  return `http://${window.location.hostname}:8000`;
+};
 
 type RequestOptions = {
   method?: string;
@@ -11,7 +14,7 @@ type RequestOptions = {
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, params } = options;
 
-  const url = new URL(`${BASE_URL}${path}`);
+  const url = new URL(`${getBaseUrl()}${path}`);
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
       if (v !== undefined) url.searchParams.set(k, String(v));

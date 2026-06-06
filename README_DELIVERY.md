@@ -51,9 +51,8 @@ Aplikasi dapat dibuka dari ponsel, tablet, atau laptop lain selama terhubung ke 
 4.  Buka browser di ponsel dan ketik alamat tersebut.
 5.  Aplikasi akan terbuka di ponsel — tampilan sudah dioptimalkan untuk layar kecil.
 
-> **Catatan:** Alamat IP (`192.168.x.x`) dapat berubah jika router memberikan IP baru ke komputer.
-> Jika akses dari ponsel tiba-tiba tidak bisa, jalankan kembali **`setup.bat`** lalu **`start.bat`**.
-> `start.bat` akan memberikan peringatan otomatis jika IP berubah.
+> **Catatan:** Aplikasi otomatis menyesuaikan alamat IP — tidak perlu konfigurasi ulang jika IP berubah.
+> Jika akses dari ponsel tiba-tiba tidak bisa, pastikan komputer dan ponsel terhubung ke Wi-Fi yang sama, lalu refresh browser di ponsel.
 
 ### 📋 Ringkasan Skenario
 
@@ -61,7 +60,7 @@ Aplikasi dapat dibuka dari ponsel, tablet, atau laptop lain selama terhubung ke 
 |---|---|
 | **Update app** (kode baru) | `update.bat` → `start.bat` |
 | **Pertama kali install** | `setup.bat` → `start.bat` |
-| **IP berubah** (router kasih IP baru) | `setup.bat` → `start.bat` |
+| **IP berubah** (router kasih IP baru) | Cukup `start.bat` — otomatis |
 
 ### 🔄 Memperbarui Aplikasi
 
@@ -142,9 +141,8 @@ The app can be opened from a phone, tablet, or another laptop as long as it is c
 4.  Open a browser on the phone and type that address.
 5.  The app will open on the phone — the layout is optimized for small screens.
 
-> **Note:** The IP address (`192.168.x.x`) may change if the router assigns a new IP to the PC.
-> If phone access suddenly stops working, re-run **`setup.bat`** and then **`start.bat`**.
-> `start.bat` will automatically warn you if the IP has changed.
+> **Note:** The app automatically adjusts to the current IP address — no reconfiguration needed if the IP changes.
+> If phone access suddenly stops working, make sure both the PC and phone are on the same Wi-Fi, then refresh the browser on the phone.
 
 ### 📋 Scenario Summary
 
@@ -152,7 +150,7 @@ The app can be opened from a phone, tablet, or another laptop as long as it is c
 |---|---|
 | **App update** (new code) | `update.bat` → `start.bat` |
 | **First-time install** | `setup.bat` → `start.bat` |
-| **IP changed** (router assigned new IP) | `setup.bat` → `start.bat` |
+| **IP changed** (router assigned new IP) | Just `start.bat` — handled automatically |
 
 ### 🔄 Updating the App
 
