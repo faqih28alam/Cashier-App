@@ -17,24 +17,6 @@ if not exist "backend\venv" (
 for /f %%i in ('powershell -nologo -command "(Get-NetIPAddress -AddressFamily IPv4 -Type Unicast | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' -and $_.IPAddress -notlike '192.168.255.*' } | Sort-Object -Property InterfaceIndex | Select-Object -First 1).IPAddress"') do set CURRENT_IP=%%i
 if "%CURRENT_IP%"=="" set CURRENT_IP=localhost
 
-:: Read configured IP from .env.local
-set CONFIGURED_IP=localhost
-for /f "tokens=2 delims=/" %%a in ('findstr "NEXT_PUBLIC_API_URL" frontend\.env.local 2^>nul') do set CONFIGURED_IP=%%a
-:: strip trailing :8000
-for /f "tokens=1 delims=:" %%a in ("%CONFIGURED_IP%") do set CONFIGURED_IP=%%a
-
-:: Warn if IP has changed since last setup
-if not "%CURRENT_IP%"=="%CONFIGURED_IP%" (
-    echo ==========================================
-    echo   WARNING: IP address has changed!
-    echo   Was: %CONFIGURED_IP%
-    echo   Now: %CURRENT_IP%
-    echo.
-    echo   Phone access will NOT work until you
-    echo   re-run setup.bat to rebuild the app.
-    echo ==========================================
-    echo.
-)
 
 :: Start Backend in a new minimized window
 echo Starting Backend (FastAPI)...
