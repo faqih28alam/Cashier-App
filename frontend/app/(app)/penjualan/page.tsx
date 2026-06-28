@@ -9,6 +9,10 @@ import { DataTable } from "@/components/shared/DataTable";
 function today() { return new Date().toISOString().slice(0, 10); }
 function firstOfMonth() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-01`; }
 function fmt(n: number) { return Number(n).toLocaleString("id-ID"); }
+function fmtDateTime(s: string) {
+  const d = new Date(s);
+  return d.toLocaleString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
 
 interface Row {
   id: number;
@@ -81,7 +85,7 @@ function VoidModal({ rows, onClose, onVoided }: VoidModalProps) {
         <div className="p-4 space-y-4">
           <div className="text-sm text-gray-600 space-y-1">
             <p><span className="font-medium">No. Transaksi:</span> <span className="font-mono">{first.no_transaksi}</span></p>
-            <p><span className="font-medium">Tanggal:</span> {first.tanggal}</p>
+            <p><span className="font-medium">Tanggal:</span> {fmtDateTime(first.tanggal)}</p>
           </div>
 
           <table className="w-full text-sm">
@@ -266,7 +270,7 @@ export default function PenjualanPage() {
   }
 
   const columns = [
-    { key: "tanggal",      label: "Tanggal",        render: (r: Row) => r.tanggal },
+    { key: "tanggal",      label: "Tanggal",        render: (r: Row) => fmtDateTime(r.tanggal) },
     {
       key: "no_transaksi",
       label: "No. Transaksi",

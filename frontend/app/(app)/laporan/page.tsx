@@ -18,7 +18,7 @@ function fmtDate(s: string) { const d = new Date(s); return `${d.getDate()}/${d.
 
 interface PenjualanRow { tanggal: string; jumlah_transaksi: number; total_penjualan: number; laba_kotor: number; }
 interface TopRow { barcode: string; nama_barang: string; total_qty: number; total_penjualan: number; }
-interface Summary { revenue: number; trx: number; }
+interface Summary { revenue: number; trx: number; laba: number; }
 interface StoreSetting { nama_toko: string; alamat: string; telepon: string; }
 interface DetailRow { id: number; tanggal: string; no_transaksi: string; nama_barang: string; sat: string; qty: number; hpp: number; harga: number; diskon: number; total: number; laba_kotor: number; }
 interface PembelianRow { id: number; no_faktur: string; tanggal: string; total: number; status: string; }
@@ -45,7 +45,7 @@ export default function LaporanPage() {
   const [to, setTo] = useState(today());
   const [today14, setToday14] = useState<PenjualanRow[]>([]);
   const [monthly, setMonthly] = useState<PenjualanRow[]>([]);
-  const [todaySummary, setTodaySummary] = useState<Summary>({ revenue: 0, trx: 0 });
+  const [todaySummary, setTodaySummary] = useState<Summary>({ revenue: 0, trx: 0, laba: 0 });
   const [top, setTop] = useState<TopRow[]>([]);
   const [custom, setCustom] = useState<PenjualanRow[]>([]);
   const [setting, setSetting] = useState<StoreSetting>({ nama_toko: "", alamat: "", telepon: "" });
@@ -65,6 +65,7 @@ export default function LaporanPage() {
       setTodaySummary({
         revenue: tod.reduce((s, r) => s + Number(r.total_penjualan), 0),
         trx: tod.reduce((s, r) => s + Number(r.jumlah_transaksi), 0),
+        laba: tod.reduce((s, r) => s + Number(r.laba_kotor), 0),
       });
       setTop(topProd);
       setSetting(s);
@@ -309,8 +310,9 @@ export default function LaporanPage() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard title="Omzet Hari Ini" value={`Rp ${fmt(todaySummary.revenue)}`} sub={`${todaySummary.trx} transaksi`} icon={TrendingUp} color="bg-green-500" />
+        <StatCard title="Laba Kotor Hari Ini" value={`Rp ${fmt(todaySummary.laba || 0)}`} sub={todaySummary.revenue > 0 ? `Margin ${(((todaySummary.laba || 0) / todaySummary.revenue) * 100).toFixed(1)}%` : "-"} icon={BarChart2} color="bg-emerald-500" />
         <StatCard title="Omzet Bulan Ini" value={`Rp ${fmt(monthlyRevenue)}`} sub={`${monthlyTrx} transaksi`} icon={BarChart2} color="bg-blue-500" />
         <StatCard title="Laba Kotor Bulan Ini" value={`Rp ${fmt(monthlyLaba)}`} sub={`Margin ${monthlyRevenue > 0 ? ((monthlyLaba / monthlyRevenue) * 100).toFixed(1) : 0}%`} icon={TrendingUp} color="bg-emerald-600" />
         <StatCard title="Total Transaksi Bulan Ini" value={String(monthlyTrx)} sub={`Rata-rata Rp ${monthlyTrx > 0 ? fmt(Math.round(monthlyRevenue / monthlyTrx)) : 0}`} icon={ShoppingCart} color="bg-purple-500" />
