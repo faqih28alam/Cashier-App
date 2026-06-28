@@ -2,7 +2,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from dependencies import get_db, get_current_user
+from dependencies import get_db, get_current_user, require_role
 from models.setting import Setting
 from models.user import User
 from models.transaksi import Transaksi
@@ -53,3 +53,12 @@ def get_transaksi(
     if not trx:
         raise HTTPException(status_code=404, detail="Transaksi tidak ditemukan")
     return trx
+
+
+@router.post("/transaksi/{id}/void", response_model=TransaksiOut)
+def void_transaksi(
+    id: int,
+    db: Annotated[Session, Depends(get_db)],
+    _: Annotated[User, Depends(require_role("admin", "owner"))],
+):
+    return transaksi_service.void(db, id)

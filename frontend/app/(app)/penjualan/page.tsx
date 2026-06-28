@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FileDown, TrendingUp, ShoppingCart, Package, BarChart2 } from "lucide-react";
+import { FileDown, TrendingUp, ShoppingCart, Package, BarChart2, X, AlertTriangle } from "lucide-react";
 import { api } from "@/lib/api";
+import { getUser } from "@/lib/auth";
 import { toast } from "@/components/shared/Toast";
 import { DataTable } from "@/components/shared/DataTable";
 
@@ -11,6 +12,7 @@ function fmt(n: number) { return Number(n).toLocaleString("id-ID"); }
 
 interface Row {
   id: number;
+  transaksi_id: number;
   tanggal: string;
   no_transaksi: string;
   nama_barang: string;
@@ -42,6 +44,100 @@ function StatCard({ title, value, sub, icon: Icon, color }: {
   );
 }
 
+interface VoidModalProps {
+  rows: Row[];
+  onClose: () => void;
+  onVoided: () => void;
+}
+
+function VoidModal({ rows, onClose, onVoided }: VoidModalProps) {
+  const [loading, setLoading] = useState(false);
+  const first = rows[0];
+  const grandTotal = rows.reduce((s, r) => s + Number(r.total), 0);
+
+  async function handleVoid() {
+    setLoading(true);
+    try {
+      await api.post(`/kasir/transaksi/${first.transaksi_id}/void`, {});
+      toast(`Transaksi ${first.no_transaksi} berhasil dibatalkan`, "success");
+      onVoided();
+    } catch (err) {
+      toast((err as Error).message, "error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="font-bold text-gray-800">Batalkan Transaksi</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="p-4 space-y-4">
+          <div className="text-sm text-gray-600 space-y-1">
+            <p><span className="font-medium">No. Transaksi:</span> <span className="font-mono">{first.no_transaksi}</span></p>
+            <p><span className="font-medium">Tanggal:</span> {first.tanggal}</p>
+          </div>
+
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b text-xs text-gray-500 uppercase">
+                <th className="text-left py-1.5">Barang</th>
+                <th className="text-center py-1.5">Qty</th>
+                <th className="text-right py-1.5">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} className="border-b last:border-0">
+                  <td className="py-1.5 text-gray-700">{r.nama_barang}</td>
+                  <td className="py-1.5 text-center text-gray-500">
+                    {Number(r.qty) % 1 === 0 ? r.qty : Number(r.qty).toFixed(3).replace(/\.?0+$/, "")} {r.sat}
+                  </td>
+                  <td className="py-1.5 text-right">Rp {fmt(Number(r.total))}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colSpan={2} className="pt-2 text-sm font-semibold">Total</td>
+                <td className="pt-2 text-right font-bold">Rp {fmt(grandTotal)}</td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded p-3 text-sm text-amber-800">
+            <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
+            <p>Stok semua item akan dikembalikan. Tindakan ini tidak dapat diurungkan.</p>
+          </div>
+
+          <div className="flex gap-2 justify-end pt-1">
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="px-4 py-2 text-sm border rounded text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+            >
+              Batal
+            </button>
+            <button
+              onClick={handleVoid}
+              disabled={loading}
+              className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded font-medium disabled:opacity-50"
+            >
+              {loading ? "Memproses..." : "Batalkan Transaksi"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PenjualanPage() {
   const [from, setFrom] = useState(firstOfMonth());
   const [to, setTo] = useState(today());
@@ -49,6 +145,10 @@ export default function PenjualanPage() {
   const [setting, setSetting] = useState<StoreSetting>({ nama_toko: "", alamat: "", telepon: "" });
   const [exporting, setExporting] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [voidNo, setVoidNo] = useState<string | null>(null);
+
+  const user = getUser();
+  const canVoid = user?.role === "admin" || user?.role === "owner";
 
   useEffect(() => {
     api.get<StoreSetting>("/setting/").then(setSetting).catch(() => {});
@@ -69,6 +169,8 @@ export default function PenjualanPage() {
   const totalDiskon  = data.reduce((s, r) => s + Number(r.diskon), 0);
   const trxSet       = new Set(data.map((r) => r.no_transaksi));
   const margin       = totalOmzet > 0 ? ((totalLaba / totalOmzet) * 100).toFixed(1) : "0";
+
+  const voidRows = voidNo ? data.filter((r) => r.no_transaksi === voidNo) : [];
 
   async function handleExportPDF() {
     setExporting(true);
@@ -165,7 +267,19 @@ export default function PenjualanPage() {
 
   const columns = [
     { key: "tanggal",      label: "Tanggal",        render: (r: Row) => r.tanggal },
-    { key: "no_transaksi", label: "No. Transaksi",   className: "font-mono text-xs hidden sm:table-cell" },
+    {
+      key: "no_transaksi",
+      label: "No. Transaksi",
+      className: "font-mono text-xs hidden sm:table-cell",
+      render: (r: Row) => canVoid ? (
+        <button
+          onClick={() => setVoidNo(r.no_transaksi)}
+          className="font-mono text-xs text-blue-600 hover:underline"
+        >
+          {r.no_transaksi}
+        </button>
+      ) : r.no_transaksi,
+    },
     { key: "nama_barang",  label: "Nama Barang",     className: "font-medium" },
     { key: "sat",          label: "SAT",             className: "text-gray-500 hidden sm:table-cell" },
     { key: "qty",          label: "QTY",             render: (r: Row) => (
@@ -182,6 +296,14 @@ export default function PenjualanPage() {
 
   return (
     <div className="p-5 space-y-5">
+      {voidNo && voidRows.length > 0 && (
+        <VoidModal
+          rows={voidRows}
+          onClose={() => setVoidNo(null)}
+          onVoided={() => { setVoidNo(null); load(); }}
+        />
+      )}
+
       <div className="flex items-start justify-between flex-wrap gap-2">
         <div>
           <h1 className="text-lg font-bold text-gray-800">Penjualan</h1>
@@ -219,7 +341,10 @@ export default function PenjualanPage() {
       {/* Table */}
       <div className="bg-white rounded-lg border">
         <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-          <p className="text-sm font-semibold text-gray-700">Detail Per Item</p>
+          <div>
+            <p className="text-sm font-semibold text-gray-700">Detail Per Item</p>
+            {canVoid && <p className="text-xs text-gray-400 mt-0.5">Klik No. Transaksi untuk membatalkan</p>}
+          </div>
           {data.length > 0 && (
             <div className="flex gap-4 text-xs text-gray-500">
               <span>Omzet: <span className="font-bold text-gray-800">Rp {fmt(totalOmzet)}</span></span>

@@ -10,6 +10,7 @@ from schemas.transaksi import TransaksiCreate
 from services import stok
 
 
+
 def _generate_no(db: Session) -> str:
     today = date.today()
     prefix = f"TRX-{today.strftime('%Y%m%d')}-"
@@ -69,6 +70,32 @@ def create(db: Session, payload: TransaksiCreate, user_id: int) -> Transaksi:
         ref_id=trx.id,
     ))
 
+    db.commit()
+    db.refresh(trx)
+    return trx
+
+
+def void(db: Session, transaksi_id: int) -> Transaksi:
+    trx = db.get(Transaksi, transaksi_id)
+    if not trx:
+        raise HTTPException(status_code=404, detail="Transaksi tidak ditemukan")
+    if trx.status == "cancelled":
+        raise HTTPException(status_code=400, detail="Transaksi sudah dibatalkan")
+    if trx.status != "paid":
+        raise HTTPException(status_code=400, detail="Hanya transaksi paid yang bisa dibatalkan")
+
+    for detail in trx.detail:
+        stok.increment(db, detail.barcode, detail.qty)
+
+    db.add(Keuangan(
+        keterangan=f"VOID {trx.no_transaksi}",
+        debit=Decimal("0"),
+        kredit=trx.total,
+        ref_type="transaksi",
+        ref_id=trx.id,
+    ))
+
+    trx.status = "cancelled"
     db.commit()
     db.refresh(trx)
     return trx

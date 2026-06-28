@@ -56,6 +56,7 @@ def penjualan_detail(db: Session, tgl_mulai: date, tgl_selesai: date) -> list[di
     rows = (
         db.query(
             TransaksiDetail.id.label("id"),
+            Transaksi.id.label("transaksi_id"),
             func.date(Transaksi.tanggal).label("tanggal"),
             Transaksi.no_transaksi,
             TransaksiDetail.nama_barang,
