@@ -63,6 +63,7 @@ def create(db: Session, payload: TransaksiCreate, user_id: int) -> Transaksi:
         stok.decrement(db, item.barcode, item.qty)
 
     db.add(Keuangan(
+        tanggal=trx.tanggal,
         keterangan=f"Penjualan {trx.no_transaksi}",
         debit=total,
         kredit=Decimal("0"),
@@ -88,6 +89,7 @@ def void(db: Session, transaksi_id: int) -> Transaksi:
         stok.increment(db, detail.barcode, detail.qty)
 
     db.add(Keuangan(
+        tanggal=datetime.now(),
         keterangan=f"VOID {trx.no_transaksi}",
         debit=Decimal("0"),
         kredit=trx.total,

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
@@ -127,6 +127,7 @@ def confirm_pembelian(
         stok.increment(db, item.barcode, item.qty)
 
     db.add(Keuangan(
+        tanggal=datetime.now(),
         keterangan=f"Pembelian {pembelian.no_faktur}",
         debit=0,
         kredit=pembelian.total,
