@@ -24,7 +24,7 @@ def login(request: Request, payload: LoginRequest, db: Annotated[Session, Depend
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Akun tidak aktif")
 
     token = jwt.encode(
-        {"sub": str(user.id), "exp": datetime.utcnow() + timedelta(hours=12)},
+        {"sub": str(user.id), "exp": datetime.utcnow() + timedelta(hours=18)},
         SECRET_KEY,
         algorithm=ALGORITHM,
     )
