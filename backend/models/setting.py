@@ -14,3 +14,5 @@ class Setting(Base):
     receipt_footer  = Column(String(255), default="Terima Kasih!")
     tax_rate        = Column(Integer, default=0)  # percentage, 0 = no tax
     auto_print      = Column(Boolean, default=True)
+    backup_client_id = Column(String(100))
+    backup_token     = Column(String(1000))

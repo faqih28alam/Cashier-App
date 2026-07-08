@@ -20,6 +20,7 @@ env/
 *.db
 *.sqlite
 *.sqlite3
+*.restore_pending
 
 # Uploaded assets (client-specific, not versioned)
 backend/static/

@@ -12,6 +12,7 @@ const SECTIONS = [
   { id: "master",      label: "Master Data" },
   { id: "pengguna",    label: "Manajemen Pengguna" },
   { id: "setting",     label: "Setting Toko" },
+  { id: "backup",      label: "Backup Database" },
   { id: "troubleshoot",label: "Troubleshooting" },
 ];
 
@@ -283,6 +284,37 @@ export default function PanduanPage() {
             </div>
           </Section>
 
+          {/* ── Backup ── */}
+          <Section id="backup" title="Backup Database">
+            <p>
+              Fitur ini menyimpan salinan database (<Code>cashier.db</Code>) ke layanan backup terpisah secara
+              online, agar data tetap aman jika komputer kasir rusak, hilang, atau bermasalah. Berbeda dari
+              modul lain yang berjalan offline, fitur ini <strong>membutuhkan koneksi internet</strong> karena
+              berkomunikasi dengan server backup eksternal.
+            </p>
+
+            <p className="font-semibold text-gray-800 mt-2">Cara menghubungkan ke layanan backup:</p>
+            <Step n={1}>Buka halaman <strong>SETTING</strong>, cari bagian <strong>Backup Database</strong>.</Step>
+            <Step n={2}>Masukkan <strong>Client ID</strong> dan <strong>Password</strong> backup yang diberikan oleh admin/pengembang aplikasi.</Step>
+            <Step n={3}>Klik <strong>Login</strong>.</Step>
+            <Note>Client ID dan Password backup <strong>berbeda</strong> dari akun login aplikasi (Kasir/Admin/Owner). Akun ini dibuatkan khusus oleh admin/pengembang — hubungi mereka jika belum memilikinya.</Note>
+
+            <p className="font-semibold text-gray-800 mt-2">Cara membuat backup:</p>
+            <Step n={1}>Setelah terhubung, klik <strong>Backup Sekarang</strong>.</Step>
+            <Step n={2}>Database saat ini otomatis disalin dan dikirim ke layanan backup, lalu muncul di daftar <strong>Riwayat Backup</strong>.</Step>
+            <Tip>Hanya 10 backup terakhir yang disimpan — backup paling lama otomatis terhapus setiap kali backup baru dibuat. Lakukan backup secara rutin, misalnya setiap tutup toko.</Tip>
+
+            <p className="font-semibold text-gray-800 mt-2">Cara mengunduh backup:</p>
+            <Step n={1}>Pada baris backup yang diinginkan di <strong>Riwayat Backup</strong>, klik <strong>Download</strong>.</Step>
+            <Step n={2}>File <Code>.db</Code> akan tersimpan ke komputer, bisa disimpan sebagai cadangan tambahan.</Step>
+
+            <p className="font-semibold text-gray-800 mt-2">Cara restore (khusus Owner):</p>
+            <Step n={1}>Pada baris backup yang ingin dipulihkan, klik <strong>Restore</strong>. Tombol ini hanya muncul untuk akun dengan peran <strong>Owner</strong>.</Step>
+            <Step n={2}>Konfirmasi pada dialog yang muncul.</Step>
+            <Step n={3}>Restart aplikasi (tutup lalu jalankan ulang <Code>start.bat</Code>) agar database yang dipilih benar-benar diterapkan.</Step>
+            <Note>Restore akan <strong>mengganti seluruh database saat ini</strong> dengan isi backup yang dipilih. Tindakan ini tidak dapat dibatalkan setelah aplikasi di-restart — pastikan memilih backup yang benar.</Note>
+          </Section>
+
           {/* ── Troubleshooting ── */}
           <Section id="troubleshoot" title="Troubleshooting Umum">
             <div className="space-y-3">
@@ -310,6 +342,14 @@ export default function PanduanPage() {
                 {
                   q: "Server backend tidak bisa diakses (error koneksi)",
                   a: "Pastikan backend berjalan: buka terminal di folder backend, aktifkan virtual env, jalankan uvicorn main:app --host 0.0.0.0 --reload. Cek di http://localhost:8000/docs.",
+                },
+                {
+                  q: "Login backup gagal / Client ID tidak ditemukan",
+                  a: "Pastikan Client ID dan Password backup sudah benar — akun ini berbeda dari akun login aplikasi (Kasir/Admin/Owner). Hubungi admin/pengembang untuk mendapatkan atau mereset akun backup.",
+                },
+                {
+                  q: "Tombol Backup Sekarang gagal / tidak merespons",
+                  a: "Fitur backup membutuhkan koneksi internet karena data dikirim ke server eksternal. Periksa koneksi internet komputer kasir lalu coba lagi.",
                 },
               ].map(({ q, a }) => (
                 <div key={q} className="border rounded p-3">
