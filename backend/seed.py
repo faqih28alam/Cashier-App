@@ -4,6 +4,7 @@ from models.user import User
 from models.kategori import Kategori
 from models.supplier import Supplier
 from models.barang import Barang
+from models.barang_harga import BarangHarga
 from models.setting import Setting
 from models.pembelian import Pembelian, PembelianDetail
 from models.transaksi import Transaksi, TransaksiDetail
@@ -112,11 +113,18 @@ BARANG = [
     {"barcode": "9999990022222", "nama_barang": "Buku Tulis 58 Lembar", "id_kategori": kat["ATK"], "sat": "PCS", "hpp": 5500,  "harga_1": 8000,  "harga_2": 7500,  "min_qty_harga_2": 5,  "harga_3": 7000,  "min_qty_harga_3": 10, "stok": 40,  "stok_minimum": 10},
 ]
 
+TIER_KEYS = ("harga_2", "min_qty_harga_2", "harga_3", "min_qty_harga_3")
+
 created_barang = 0
 for b in BARANG:
+    harga_2, min_qty_harga_2, harga_3, min_qty_harga_3 = (b.pop(k) for k in TIER_KEYS)
     if not db.get(Barang, b["barcode"]):
         db.add(Barang(**b))
         created_barang += 1
+        if min_qty_harga_2:
+            db.add(BarangHarga(barcode=b["barcode"], min_qty=min_qty_harga_2, harga=harga_2))
+        if min_qty_harga_3:
+            db.add(BarangHarga(barcode=b["barcode"], min_qty=min_qty_harga_3, harga=harga_3))
 db.flush()
 print(f"barang: {created_barang} created, {len(BARANG)-created_barang} skipped")
 
