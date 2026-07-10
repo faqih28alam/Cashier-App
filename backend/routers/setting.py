@@ -1,6 +1,7 @@
 import os
 import platform
 import shutil
+import socket
 import subprocess
 from typing import Annotated, List
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
@@ -39,6 +40,26 @@ def get_setting_public(db: Annotated[Session, Depends(get_db)]):
 @router.get("/", response_model=SettingOut)
 def get_setting(db: Annotated[Session, Depends(get_db)], _: Annotated[User, Depends(get_current_user)]):
     return _get_or_create(db)
+
+
+def _detect_lan_ip() -> str:
+    """No packets are actually sent — connect() on a UDP socket just asks
+    the OS routing table which local interface would be used to reach that
+    address, which is exactly the LAN IP other devices need to reach us.
+    """
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 80))
+        return s.getsockname()[0]
+    except OSError:
+        return "127.0.0.1"
+    finally:
+        s.close()
+
+
+@router.get("/lan-ip")
+def get_lan_ip(_: Annotated[User, Depends(get_current_user)]) -> dict:
+    return {"lan_ip": _detect_lan_ip()}
 
 
 LOGO_PATH = os.path.join(os.path.dirname(__file__), "..", "static", "logo.png")

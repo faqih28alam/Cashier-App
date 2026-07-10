@@ -50,14 +50,14 @@ export default function SettingPage() {
   const [restoreTarget, setRestoreTarget] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(false);
   const [restoreDone, setRestoreDone] = useState(false);
-  const [hostname, setHostname] = useState<string | null>(null);
-  const isLan = hostname !== null && hostname !== "localhost" && hostname !== "127.0.0.1";
-  const frontendUrl = `http://${hostname}:3000`;
+  const [lanIp, setLanIp] = useState<string | null>(null);
+  const isLan = lanIp !== null && lanIp !== "127.0.0.1";
+  const frontendUrl = `http://${lanIp}:3000`;
 
   useEffect(() => {
     setLogoKey(Date.now());
     setUser(getUser());
-    setHostname(window.location.hostname);
+    api.get<{ lan_ip: string }>("/setting/lan-ip").then((r) => setLanIp(r.lan_ip)).catch(() => {});
     api.get<Setting>("/setting/").then(setForm).catch(() => {});
     loadBackupStatus();
   }, []);
