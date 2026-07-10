@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import QRCode from "react-qr-code";
-import { api } from "@/lib/api";
+import { api, getBaseUrl } from "@/lib/api";
 import { getToken, getUser, clearAuth } from "@/lib/auth";
 import { toast } from "@/components/shared/Toast";
 
@@ -50,13 +50,14 @@ export default function SettingPage() {
   const [restoreTarget, setRestoreTarget] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(false);
   const [restoreDone, setRestoreDone] = useState(false);
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-  const frontendUrl = apiUrl.replace(/:\d+$/, ":3000");
-  const isLan = !apiUrl.includes("localhost") && !apiUrl.includes("127.0.0.1");
+  const [hostname, setHostname] = useState<string | null>(null);
+  const isLan = hostname !== null && hostname !== "localhost" && hostname !== "127.0.0.1";
+  const frontendUrl = `http://${hostname}:3000`;
 
   useEffect(() => {
     setLogoKey(Date.now());
     setUser(getUser());
+    setHostname(window.location.hostname);
     api.get<Setting>("/setting/").then(setForm).catch(() => {});
     loadBackupStatus();
   }, []);
@@ -120,7 +121,7 @@ export default function SettingPage() {
   async function handleBackupDownload(filename: string) {
     setDownloadingFile(filename);
     try {
-      const res = await fetch(`http://${window.location.hostname}:8000/backup/download/${filename}`, {
+      const res = await fetch(`${getBaseUrl()}/backup/download/${filename}`, {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
       if (!res.ok) throw new Error("Download gagal");
@@ -179,7 +180,7 @@ export default function SettingPage() {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch(`${apiUrl}/setting/logo`, {
+      const res = await fetch(`${getBaseUrl()}/setting/logo`, {
         method: "POST",
         headers: { Authorization: `Bearer ${getToken()}` },
         body: fd,
@@ -245,7 +246,7 @@ export default function SettingPage() {
           <div className="flex items-center gap-3">
             <img
               key={logoKey}
-              src={`${apiUrl}/static/logo.png?t=${logoKey}`}
+              src={`${getBaseUrl()}/static/logo.png?t=${logoKey}`}
               alt="Logo"
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
               onLoad={(e) => { (e.target as HTMLImageElement).style.display = "block"; }}
