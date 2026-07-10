@@ -61,10 +61,12 @@ def snapshot_db_bytes() -> bytes:
     """
     if not DB_FILE_PATH:
         raise RuntimeError("Backup hanya didukung untuk database SQLite")
-    with tempfile.NamedTemporaryFile(suffix=".db") as tmp:
+    fd, tmp_path = tempfile.mkstemp(suffix=".db")
+    os.close(fd)  # release our handle first — reopening a still-open temp file by path fails on Windows
+    try:
         try:
             src = sqlite3.connect(f"{Path(DB_FILE_PATH).as_uri()}?mode=ro", uri=True)
-            dst = sqlite3.connect(tmp.name)
+            dst = sqlite3.connect(tmp_path)
             try:
                 src.backup(dst)
             finally:
@@ -72,8 +74,10 @@ def snapshot_db_bytes() -> bytes:
                 src.close()
         except sqlite3.Error as e:
             raise RuntimeError(f"Gagal membaca file database: {e}") from e
-        tmp.seek(0)
-        return tmp.read()
+        with open(tmp_path, "rb") as f:
+            return f.read()
+    finally:
+        os.remove(tmp_path)
 
 
 def upload_backup(token: str) -> dict:
