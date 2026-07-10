@@ -51,9 +51,20 @@ if not exist .env (
 
 echo Running database migrations...
 alembic upgrade head
+if %errorlevel% neq 0 (
+    echo Error: Database migration failed. See the output above for details.
+    pause
+    exit /b
+)
 
 echo Seeding initial data...
 python seed.py
+if %errorlevel% neq 0 (
+    echo Error: Seeding initial data failed. See the output above for details.
+    echo The user table may be empty, which will cause login to fail.
+    pause
+    exit /b
+)
 
 cd ..
 echo Backend setup complete.
