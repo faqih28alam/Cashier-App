@@ -24,21 +24,31 @@ def _detail(res: httpx.Response, fallback: str) -> str:
         return fallback
 
 
+def _unreachable(e: httpx.HTTPError) -> RuntimeError:
+    return RuntimeError(f"Tidak bisa menghubungi layanan backup: {e}")
+
+
 def login(client_id: str, password: str) -> str:
-    with _client() as c:
-        res = c.post("/auth/login", json={"client_id": client_id, "password": password})
+    try:
+        with _client() as c:
+            res = c.post("/auth/login", json={"client_id": client_id, "password": password})
+    except httpx.HTTPError as e:
+        raise _unreachable(e) from e
     if res.status_code != 200:
         raise ValueError(_detail(res, "Login gagal"))
     return res.json()["access_token"]
 
 
 def change_password(token: str, old_password: str, new_password: str) -> None:
-    with _client() as c:
-        res = c.post(
-            "/auth/change-password",
-            headers={"Authorization": f"Bearer {token}"},
-            json={"old_password": old_password, "new_password": new_password},
-        )
+    try:
+        with _client() as c:
+            res = c.post(
+                "/auth/change-password",
+                headers={"Authorization": f"Bearer {token}"},
+                json={"old_password": old_password, "new_password": new_password},
+            )
+    except httpx.HTTPError as e:
+        raise _unreachable(e) from e
     if res.status_code != 200:
         raise ValueError(_detail(res, "Gagal mengubah password"))
 
@@ -51,41 +61,53 @@ def snapshot_db_bytes() -> bytes:
     if not DB_FILE_PATH:
         raise RuntimeError("Backup hanya didukung untuk database SQLite")
     with tempfile.NamedTemporaryFile(suffix=".db") as tmp:
-        src = sqlite3.connect(f"file:{DB_FILE_PATH}?mode=ro", uri=True)
-        dst = sqlite3.connect(tmp.name)
         try:
-            src.backup(dst)
-        finally:
-            dst.close()
-            src.close()
+            src = sqlite3.connect(f"file:{DB_FILE_PATH}?mode=ro", uri=True)
+            dst = sqlite3.connect(tmp.name)
+            try:
+                src.backup(dst)
+            finally:
+                dst.close()
+                src.close()
+        except sqlite3.Error as e:
+            raise RuntimeError(f"Gagal membaca file database: {e}") from e
         tmp.seek(0)
         return tmp.read()
 
 
 def upload_backup(token: str) -> dict:
     content = snapshot_db_bytes()
-    with _client() as c:
-        res = c.post(
-            "/backup",
-            headers={"Authorization": f"Bearer {token}"},
-            files={"file": ("cashier.db", content, "application/octet-stream")},
-        )
+    try:
+        with _client() as c:
+            res = c.post(
+                "/backup",
+                headers={"Authorization": f"Bearer {token}"},
+                files={"file": ("cashier.db", content, "application/octet-stream")},
+            )
+    except httpx.HTTPError as e:
+        raise _unreachable(e) from e
     if res.status_code != 200:
         raise ValueError(_detail(res, "Backup gagal"))
     return res.json()
 
 
 def list_backups(token: str) -> List[dict]:
-    with _client() as c:
-        res = c.get("/backups", headers={"Authorization": f"Bearer {token}"})
+    try:
+        with _client() as c:
+            res = c.get("/backups", headers={"Authorization": f"Bearer {token}"})
+    except httpx.HTTPError as e:
+        raise _unreachable(e) from e
     if res.status_code != 200:
         raise ValueError(_detail(res, "Gagal mengambil daftar backup"))
     return res.json()
 
 
 def download_backup(token: str, filename: str) -> bytes:
-    with _client() as c:
-        res = c.get(f"/backup/{filename}", headers={"Authorization": f"Bearer {token}"})
+    try:
+        with _client() as c:
+            res = c.get(f"/backup/{filename}", headers={"Authorization": f"Bearer {token}"})
+    except httpx.HTTPError as e:
+        raise _unreachable(e) from e
     if res.status_code != 200:
         raise ValueError(_detail(res, "Backup tidak ditemukan"))
     return res.content
