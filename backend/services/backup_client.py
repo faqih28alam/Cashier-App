@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import tempfile
+from pathlib import Path
 from typing import List
 
 import httpx
@@ -62,7 +63,7 @@ def snapshot_db_bytes() -> bytes:
         raise RuntimeError("Backup hanya didukung untuk database SQLite")
     with tempfile.NamedTemporaryFile(suffix=".db") as tmp:
         try:
-            src = sqlite3.connect(f"file:{DB_FILE_PATH}?mode=ro", uri=True)
+            src = sqlite3.connect(f"{Path(DB_FILE_PATH).as_uri()}?mode=ro", uri=True)
             dst = sqlite3.connect(tmp.name)
             try:
                 src.backup(dst)

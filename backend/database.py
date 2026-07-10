@@ -8,7 +8,7 @@ load_dotenv()
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./cashier.db")
 
 DB_FILE_PATH = (
-    SQLALCHEMY_DATABASE_URL[len("sqlite:///"):]
+    os.path.abspath(SQLALCHEMY_DATABASE_URL[len("sqlite:///"):])
     if SQLALCHEMY_DATABASE_URL.startswith("sqlite:///")
     else None
 )
